@@ -1,4 +1,129 @@
 // Weather Timeline App with Enhanced Features
+
+// Translations
+const translations = {
+    en: {
+        title: 'Weather Timeline',
+        useLocation: 'Use My Location',
+        searchPlaceholder: 'Search for a city...',
+        search: 'Search',
+        currentWeather: 'Current Weather',
+        oneYearAgo: 'One Year Ago',
+        yearsAgo: 'Years Ago',
+        addComparison: 'Add Comparison Year',
+        jumpToDate: 'Jump to Date',
+        syncScroll: 'Sync Scroll',
+        settings: 'Settings',
+        theme: 'Theme',
+        light: 'Light',
+        system: 'System',
+        dark: 'Dark',
+        tempUnit: 'Temperature Unit',
+        favoriteLocations: 'Favorite Locations',
+        noFavorites: 'No favorites yet. Search for a city and click the star!',
+        keyboardShortcuts: 'Keyboard Shortcuts',
+        help: 'Help',
+        close: 'Close',
+        cancel: 'Cancel',
+        confirm: 'Confirm',
+        selectDate: 'Select a date to view:',
+        navigateDate: 'Navigate to a specific date on all timelines',
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
+        loading: 'Loading weather data...',
+        closeModals: 'Close modals, settings, or autocomplete',
+        scrollTimelines: 'Scroll timelines left/right',
+        toggleSync: 'Toggle synchronized scrolling',
+        cycleTheme: 'Cycle through themes (Light → System → Dark)',
+        toggleUnit: 'Toggle temperature unit (°C ↔ °F)',
+        showHelp: 'Show this help',
+        searching: 'Searching...',
+        high: 'High',
+        low: 'Low'
+    },
+    tr: {
+        title: 'Hava Durumu Zaman Çizelgesi',
+        useLocation: 'Konumumu Kullan',
+        searchPlaceholder: 'Şehir ara...',
+        search: 'Ara',
+        currentWeather: 'Güncel Hava Durumu',
+        oneYearAgo: 'Bir Yıl Önce',
+        yearsAgo: 'Yıl Önce',
+        addComparison: 'Karşılaştırma Yılı Ekle',
+        jumpToDate: 'Tarihe Git',
+        syncScroll: 'Senkron Kaydırma',
+        settings: 'Ayarlar',
+        theme: 'Tema',
+        light: 'Açık',
+        system: 'Sistem',
+        dark: 'Koyu',
+        tempUnit: 'Sıcaklık Birimi',
+        favoriteLocations: 'Favori Konumlar',
+        noFavorites: 'Henüz favori yok. Şehir arayın ve yıldıza tıklayın!',
+        keyboardShortcuts: 'Klavye Kısayolları',
+        help: 'Yardım',
+        close: 'Kapat',
+        cancel: 'İptal',
+        confirm: 'Onayla',
+        selectDate: 'Görüntülenecek tarihi seçin:',
+        navigateDate: 'Tüm zaman çizelgelerinde belirli bir tarihe git',
+        daily: 'Günlük',
+        weekly: 'Haftalık',
+        monthly: 'Aylık',
+        loading: 'Hava durumu verileri yükleniyor...',
+        closeModals: 'Modları, ayarları veya otomatik tamamlamayı kapat',
+        scrollTimelines: 'Zaman çizelgelerini sola/sağa kaydır',
+        toggleSync: 'Senkronize kaydırmayı aç/kapat',
+        cycleTheme: 'Temalar arasında geçiş yap (Açık → Sistem → Koyu)',
+        toggleUnit: 'Sıcaklık birimini değiştir (°C ↔ °F)',
+        showHelp: 'Bu yardımı göster',
+        searching: 'Aranıyor...',
+        high: 'Maks',
+        low: 'Min'
+    },
+    es: {
+        title: 'Línea de Tiempo del Clima',
+        useLocation: 'Usar Mi Ubicación',
+        searchPlaceholder: 'Buscar una ciudad...',
+        search: 'Buscar',
+        currentWeather: 'Clima Actual',
+        oneYearAgo: 'Hace Un Año',
+        yearsAgo: 'Años Atrás',
+        addComparison: 'Añadir Año de Comparación',
+        jumpToDate: 'Ir a Fecha',
+        syncScroll: 'Desplazamiento Sincronizado',
+        settings: 'Configuración',
+        theme: 'Tema',
+        light: 'Claro',
+        system: 'Sistema',
+        dark: 'Oscuro',
+        tempUnit: 'Unidad de Temperatura',
+        favoriteLocations: 'Ubicaciones Favoritas',
+        noFavorites: '¡Aún no hay favoritos. Busca una ciudad y haz clic en la estrella!',
+        keyboardShortcuts: 'Atajos de Teclado',
+        help: 'Ayuda',
+        close: 'Cerrar',
+        cancel: 'Cancelar',
+        confirm: 'Confirmar',
+        selectDate: 'Selecciona una fecha para ver:',
+        navigateDate: 'Navegar a una fecha específica en todas las líneas de tiempo',
+        daily: 'Diario',
+        weekly: 'Semanal',
+        monthly: 'Mensual',
+        loading: 'Cargando datos meteorológicos...',
+        closeModals: 'Cerrar modales, configuración o autocompletado',
+        scrollTimelines: 'Desplazar líneas de tiempo izquierda/derecha',
+        toggleSync: 'Alternar desplazamiento sincronizado',
+        cycleTheme: 'Cambiar entre temas (Claro → Sistema → Oscuro)',
+        toggleUnit: 'Alternar unidad de temperatura (°C ↔ °F)',
+        showHelp: 'Mostrar esta ayuda',
+        searching: 'Buscando...',
+        high: 'Máx',
+        low: 'Mín'
+    }
+};
+
 class WeatherTimeline {
     constructor() {
         // Load preferences from localStorage
@@ -32,7 +157,8 @@ class WeatherTimeline {
             theme: 'system',
             tempUnit: 'celsius',
             view: 'daily',
-            favorites: []
+            favorites: [],
+            language: 'en'
         };
 
         try {
@@ -72,6 +198,14 @@ class WeatherTimeline {
         document.querySelectorAll('[data-view]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.view === this.currentView);
         });
+
+        // Update language buttons
+        document.querySelectorAll('[data-lang]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === this.preferences.language);
+        });
+
+        // Update UI text
+        this.updateUIText();
     }
 
     // Setup DOM elements
@@ -82,6 +216,7 @@ class WeatherTimeline {
         this.settingsPanel = document.getElementById('settingsPanel');
         this.closeSettingsBtn = document.getElementById('closeSettings');
         this.favoritesList = document.getElementById('favoritesList');
+        this.favoritesHeader = document.getElementById('favoritesHeader');
 
         // Location controls
         this.geolocationBtn = document.getElementById('geolocationBtn');
@@ -138,6 +273,12 @@ class WeatherTimeline {
         this.helpBtn.addEventListener('click', () => this.openKeyboardHelp());
         this.closeKeyboardHelp.addEventListener('click', () => this.closeKeyboardHelpModal());
 
+        // Collapsable favorites
+        this.favoritesHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFavoritesList();
+        });
+
         // Theme buttons - Fixed to use currentTarget and stopPropagation
         document.querySelectorAll('[data-theme]').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -156,6 +297,16 @@ class WeatherTimeline {
                 const unit = e.currentTarget.dataset.unit;
                 if (unit) {
                     this.changeTempUnit(unit);
+                }
+            });
+        });
+
+        // Language buttons
+        document.querySelectorAll('[data-lang]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = e.currentTarget.dataset.lang;
+                if (lang) {
+                    this.changeLanguage(lang);
                 }
             });
         });
@@ -352,6 +503,94 @@ class WeatherTimeline {
         }
     }
 
+    // Language management
+    changeLanguage(lang) {
+        this.preferences.language = lang;
+        this.savePreferences();
+
+        document.querySelectorAll('[data-lang]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        this.updateUIText();
+
+        // Re-render timelines with new language
+        if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
+            this.renderAllTimelines();
+        }
+    }
+
+    t(key) {
+        return translations[this.preferences.language]?.[key] || translations.en[key] || key;
+    }
+
+    updateUIText() {
+        // Update button text elements
+        const geolocationText = document.querySelector('#geolocationBtn .btn-text');
+        if (geolocationText) geolocationText.textContent = this.t('useLocation');
+
+        const citySearch = document.getElementById('citySearch');
+        if (citySearch) citySearch.placeholder = this.t('searchPlaceholder');
+
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) searchBtn.textContent = this.t('search');
+
+        const settingsTitle = document.querySelector('.settings-header h3');
+        if (settingsTitle) settingsTitle.textContent = this.t('settings');
+
+        const themeLabel = document.querySelector('.settings-section label');
+        if (themeLabel && themeLabel.textContent.includes('Theme') || themeLabel.textContent.includes('Tema')) {
+            themeLabel.textContent = this.t('theme');
+        }
+
+        const tempUnitLabels = document.querySelectorAll('.settings-section label');
+        if (tempUnitLabels[1]) tempUnitLabels[1].textContent = this.t('tempUnit');
+
+        const favoritesHeader = document.querySelector('.collapsable-header h4');
+        if (favoritesHeader) favoritesHeader.textContent = this.t('favoriteLocations');
+
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState && !this.preferences.favorites.length) {
+            emptyState.textContent = this.t('noFavorites');
+        }
+
+        const addTimelineText = document.querySelector('#addTimelineBtn');
+        if (addTimelineText) {
+            const textNode = Array.from(addTimelineText.childNodes).find(node => node.nodeType === 3);
+            if (textNode) textNode.textContent = ' ' + this.t('addComparison');
+        }
+
+        const jumpToDateText = document.querySelector('#jumpToDateBtn .btn-text');
+        if (jumpToDateText) jumpToDateText.textContent = this.t('jumpToDate');
+
+        const syncScrollText = document.querySelector('#syncScrollBtn .btn-text');
+        if (syncScrollText) syncScrollText.textContent = this.t('syncScroll');
+
+        // Update view buttons
+        const dailyBtn = document.querySelector('[data-view="daily"]');
+        if (dailyBtn) dailyBtn.textContent = this.t('daily');
+
+        const weeklyBtn = document.querySelector('[data-view="weekly"]');
+        if (weeklyBtn) weeklyBtn.textContent = this.t('weekly');
+
+        const monthlyBtn = document.querySelector('[data-view="monthly"]');
+        if (monthlyBtn) monthlyBtn.textContent = this.t('monthly');
+
+        // Update theme buttons
+        const lightBtn = document.querySelector('[data-theme="light"]');
+        if (lightBtn) lightBtn.textContent = this.t('light');
+
+        const systemBtn = document.querySelector('[data-theme="system"]');
+        if (systemBtn) systemBtn.textContent = this.t('system');
+
+        const darkBtn = document.querySelector('[data-theme="dark"]');
+        if (darkBtn) darkBtn.textContent = this.t('dark');
+
+        // Update loading text
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) loadingText.textContent = this.t('loading');
+    }
+
     // Convert temperature
     convertTemp(celsius) {
         if (this.preferences.tempUnit === 'fahrenheit') {
@@ -371,6 +610,12 @@ class WeatherTimeline {
 
     closeSettings() {
         this.settingsPanel.style.display = 'none';
+    }
+
+    toggleFavoritesList() {
+        this.favoritesList.classList.toggle('collapsed');
+        const icon = this.favoritesHeader.querySelector('.collapse-icon');
+        icon.classList.toggle('rotated');
     }
 
     // Favorites management
@@ -479,7 +724,7 @@ class WeatherTimeline {
         }
 
         // Show loading state
-        this.searchAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">Searching...</div></div>';
+        this.searchAutocomplete.innerHTML = `<div class="autocomplete-item"><div class="autocomplete-item-name">${this.t('searching')}</div></div>`;
         this.searchAutocomplete.style.display = 'block';
 
         this.autocompleteTimeout = setTimeout(async () => {
@@ -1027,9 +1272,9 @@ class WeatherTimeline {
         section.dataset.yearsAgo = timeline.yearsAgo;
 
         const year = new Date().getFullYear() - timeline.yearsAgo;
-        const title = timeline.yearsAgo === 0 ? 'Current Weather' :
-                      timeline.yearsAgo === 1 ? 'One Year Ago' :
-                      `${timeline.yearsAgo} Years Ago`;
+        const title = timeline.yearsAgo === 0 ? this.t('currentWeather') :
+                      timeline.yearsAgo === 1 ? this.t('oneYearAgo') :
+                      `${timeline.yearsAgo} ${this.t('yearsAgo')}`;
 
         // Fixed: Moved year label to center of header
         section.innerHTML = `
@@ -1096,10 +1341,12 @@ class WeatherTimeline {
             scrollContainer.scrollLeft += 300;
         });
 
-        // Scroll to end (today's date)
+        // Scroll to end (today's date) - use longer delay and requestAnimationFrame
         setTimeout(() => {
-            scrollContainer.scrollLeft = scrollContainer.scrollWidth;
-        }, 100);
+            requestAnimationFrame(() => {
+                scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+            });
+        }, 300);
 
         return section;
     }
@@ -1107,6 +1354,7 @@ class WeatherTimeline {
     setupScrollSync() {
         const scrollContainers = document.querySelectorAll('.timeline-scroll');
         let isScrolling = false;
+        let scrollTimeout = null;
 
         scrollContainers.forEach(container => {
             container.addEventListener('scroll', (e) => {
@@ -1115,16 +1363,25 @@ class WeatherTimeline {
                 isScrolling = true;
                 const scrollPercent = e.target.scrollLeft / (e.target.scrollWidth - e.target.clientWidth);
 
-                scrollContainers.forEach(other => {
-                    if (other !== e.target) {
-                        const targetScroll = scrollPercent * (other.scrollWidth - other.clientWidth);
-                        other.scrollLeft = targetScroll;
-                    }
-                });
+                // Clear any existing timeout
+                if (scrollTimeout) {
+                    clearTimeout(scrollTimeout);
+                }
 
-                setTimeout(() => {
-                    isScrolling = false;
-                }, 50);
+                // Wait for scroll to finish before updating other containers
+                scrollTimeout = setTimeout(() => {
+                    scrollContainers.forEach(other => {
+                        if (other !== e.target) {
+                            const targetScroll = scrollPercent * (other.scrollWidth - other.clientWidth);
+                            other.scrollLeft = targetScroll;
+                        }
+                    });
+
+                    // Reset after all scrolls complete
+                    setTimeout(() => {
+                        isScrolling = false;
+                    }, 100);
+                }, 500); // 0.5s delay as requested
             });
         });
     }
@@ -1219,8 +1476,8 @@ class WeatherTimeline {
             const tempMin = this.convertTemp(data.tempMin);
             chartHTML = `
                 <div class="temp-range">
-                    <span class="temp-max" title="High">↑${tempMax}${unit}</span>
-                    <span class="temp-min" title="Low">↓${tempMin}${unit}</span>
+                    <span class="temp-max" title="${this.t('high')}">↑${tempMax}${unit}</span>
+                    <span class="temp-min" title="${this.t('low')}">↓${tempMin}${unit}</span>
                 </div>
             `;
         }

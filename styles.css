@@ -109,6 +109,35 @@ body {
 .header-controls {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
+}
+
+.language-selector {
+    display: flex;
+    gap: 0.25rem;
+    margin-right: 0.5rem;
+    padding-right: 0.5rem;
+    border-right: 1px solid var(--border-color);
+}
+
+.language-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.5rem;
+    min-width: 36px;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.language-btn:hover {
+    opacity: 0.9;
+    background: var(--background);
+}
+
+.language-btn.active {
+    opacity: 1;
+    background: var(--primary-color);
+    color: white;
 }
 
 /* Settings Panel */
@@ -166,10 +195,44 @@ body {
 }
 
 /* Favorites List */
+.collapsable-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    user-select: none;
+}
+
+.collapsable-header:hover {
+    opacity: 0.8;
+}
+
+.collapsable-header h4 {
+    margin: 0;
+}
+
+.collapse-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapse-icon.rotated {
+    transform: rotate(-180deg);
+}
+
 .favorites-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.favorites-list.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
 }
 
 .favorite-item {
@@ -551,9 +614,9 @@ body {
 .timeline-item {
     background: var(--background);
     border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-    min-width: 200px;
+    border-radius: 10px;
+    padding: 1rem;
+    min-width: 140px;
     text-align: center;
     transition: all 0.2s;
     cursor: pointer;
@@ -576,34 +639,34 @@ body {
 .timeline-date {
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.875rem;
 }
 
 .timeline-day {
     color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
 .weather-icon {
-    font-size: 3rem;
-    margin: 0.5rem 0;
+    font-size: 2.25rem;
+    margin: 0.35rem 0;
 }
 
 .weather-temp {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0.5rem 0;
+    margin: 0.35rem 0;
 }
 
 .temp-range {
     display: flex;
     justify-content: center;
-    gap: 1rem;
-    margin-top: 0.5rem;
-    font-size: 0.75rem;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
 }
 
 .temp-max {
@@ -618,16 +681,16 @@ body {
 
 .weather-condition {
     color: var(--text-secondary);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
     text-transform: capitalize;
 }
 
 .temp-difference {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
     border-top: 1px solid var(--border-color);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 600;
 }
 
