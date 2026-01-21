@@ -12,6 +12,7 @@ class WeatherTimeline {
         this.syncScroll = true;
         this.autocompleteResults = [];
         this.autocompleteTimeout = null;
+        this.autocompleteSelectedIndex = -1;
 
         this.init();
     }
@@ -21,6 +22,7 @@ class WeatherTimeline {
         this.setupElements();
         this.applyPreferences();
         this.setupEventListeners();
+        this.setupKeyboardShortcuts();
         this.renderFavorites();
     }
 
@@ -76,6 +78,7 @@ class WeatherTimeline {
     setupElements() {
         // Settings
         this.settingsBtn = document.getElementById('settingsBtn');
+        this.helpBtn = document.getElementById('helpBtn');
         this.settingsPanel = document.getElementById('settingsPanel');
         this.closeSettingsBtn = document.getElementById('closeSettings');
         this.favoritesList = document.getElementById('favoritesList');
@@ -95,14 +98,26 @@ class WeatherTimeline {
 
         // Timeline controls
         this.addTimelineBtn = document.getElementById('addTimelineBtn');
+        this.jumpToDateBtn = document.getElementById('jumpToDateBtn');
         this.syncScrollBtn = document.getElementById('syncScrollBtn');
 
-        // Modal
+        // Add Timeline Modal
         this.addTimelineModal = document.getElementById('addTimelineModal');
         this.closeModal = document.getElementById('closeModal');
         this.yearsAgoInput = document.getElementById('yearsAgo');
         this.cancelAddTimeline = document.getElementById('cancelAddTimeline');
         this.confirmAddTimeline = document.getElementById('confirmAddTimeline');
+
+        // Keyboard Help Modal
+        this.keyboardHelpModal = document.getElementById('keyboardHelp');
+        this.closeKeyboardHelp = document.getElementById('closeKeyboardHelp');
+
+        // Jump to Date Modal
+        this.jumpToDateModal = document.getElementById('jumpToDateModal');
+        this.closeJumpToDate = document.getElementById('closeJumpToDate');
+        this.jumpDateInput = document.getElementById('jumpDate');
+        this.cancelJumpToDate = document.getElementById('cancelJumpToDate');
+        this.confirmJumpToDate = document.getElementById('confirmJumpToDate');
 
         // Utility
         this.loadingIndicator = document.getElementById('loadingIndicator');
@@ -113,17 +128,36 @@ class WeatherTimeline {
     // Setup event listeners
     setupEventListeners() {
         // Settings
-        this.settingsBtn.addEventListener('click', () => this.openSettings());
+        this.settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openSettings();
+        });
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
 
-        // Theme buttons
+        // Help
+        this.helpBtn.addEventListener('click', () => this.openKeyboardHelp());
+        this.closeKeyboardHelp.addEventListener('click', () => this.closeKeyboardHelpModal());
+
+        // Theme buttons - Fixed to use currentTarget and stopPropagation
         document.querySelectorAll('[data-theme]').forEach(btn => {
-            btn.addEventListener('click', (e) => this.changeTheme(e.target.dataset.theme));
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent settings panel from closing
+                const theme = e.currentTarget.dataset.theme;
+                if (theme) {
+                    this.changeTheme(theme);
+                }
+            });
         });
 
-        // Temperature unit buttons
+        // Temperature unit buttons - Fixed
         document.querySelectorAll('[data-unit]').forEach(btn => {
-            btn.addEventListener('click', (e) => this.changeTempUnit(e.target.dataset.unit));
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent settings panel from closing
+                const unit = e.currentTarget.dataset.unit;
+                if (unit) {
+                    this.changeTempUnit(unit);
+                }
+            });
         });
 
         // Location
@@ -131,6 +165,11 @@ class WeatherTimeline {
         this.searchBtn.addEventListener('click', () => this.searchCity());
         this.citySearch.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
         this.citySearch.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
+        this.citySearch.addEventListener('focus', () => {
+            if (this.citySearch.value.length >= 2 && this.autocompleteResults.length > 0) {
+                this.showAutocomplete();
+            }
+        });
         this.citySearch.addEventListener('blur', () => {
             // Delay hiding to allow click on autocomplete item
             setTimeout(() => this.hideAutocomplete(), 200);
@@ -143,8 +182,8 @@ class WeatherTimeline {
         this.viewBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.viewBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.currentView = e.target.dataset.view;
+                e.currentTarget.classList.add('active');
+                this.currentView = e.currentTarget.dataset.view;
                 this.preferences.view = this.currentView;
                 this.savePreferences();
                 if (this.currentLocation) {
@@ -155,21 +194,47 @@ class WeatherTimeline {
 
         // Timeline controls
         this.addTimelineBtn.addEventListener('click', () => this.openAddTimelineModal());
+        this.jumpToDateBtn.addEventListener('click', () => this.openJumpToDateModal());
         this.syncScrollBtn.addEventListener('click', () => this.toggleSyncScroll());
 
-        // Modal
+        // Add Timeline Modal
         this.closeModal.addEventListener('click', () => this.closeAddTimelineModal());
         this.cancelAddTimeline.addEventListener('click', () => this.closeAddTimelineModal());
         this.confirmAddTimeline.addEventListener('click', () => this.addTimeline());
+        this.yearsAgoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addTimeline();
+        });
 
-        // Close modal on background click
+        // Close add timeline modal on background click
         this.addTimelineModal.addEventListener('click', (e) => {
             if (e.target === this.addTimelineModal) {
                 this.closeAddTimelineModal();
             }
         });
 
-        // Close settings on background click
+        // Jump to Date Modal
+        this.closeJumpToDate.addEventListener('click', () => this.closeJumpToDateModal());
+        this.cancelJumpToDate.addEventListener('click', () => this.closeJumpToDateModal());
+        this.confirmJumpToDate.addEventListener('click', () => this.jumpToDate());
+        this.jumpDateInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.jumpToDate();
+        });
+
+        // Close jump to date modal on background click
+        this.jumpToDateModal.addEventListener('click', (e) => {
+            if (e.target === this.jumpToDateModal) {
+                this.closeJumpToDateModal();
+            }
+        });
+
+        // Close keyboard help modal on background click
+        this.keyboardHelpModal.addEventListener('click', (e) => {
+            if (e.target === this.keyboardHelpModal) {
+                this.closeKeyboardHelpModal();
+            }
+        });
+
+        // Close settings on background click - Fixed to not interfere with buttons inside
         document.addEventListener('click', (e) => {
             if (this.settingsPanel.style.display === 'block' &&
                 !this.settingsPanel.contains(e.target) &&
@@ -178,6 +243,87 @@ class WeatherTimeline {
                 this.closeSettings();
             }
         });
+
+        // Prevent settings panel clicks from closing it
+        this.settingsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Keyboard shortcuts
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // ESC - Close modal or settings or autocomplete
+            if (e.key === 'Escape') {
+                if (this.addTimelineModal.style.display === 'flex') {
+                    this.closeAddTimelineModal();
+                } else if (this.jumpToDateModal.style.display === 'flex') {
+                    this.closeJumpToDateModal();
+                } else if (this.keyboardHelpModal.style.display === 'flex') {
+                    this.closeKeyboardHelpModal();
+                } else if (this.settingsPanel.style.display === 'block') {
+                    this.closeSettings();
+                } else if (this.searchAutocomplete.style.display === 'block') {
+                    this.hideAutocomplete();
+                }
+            }
+
+            // Don't handle other shortcuts if typing in input
+            if (e.target.tagName === 'INPUT') return;
+
+            // ? - Show keyboard help
+            if (e.key === '?') {
+                e.preventDefault();
+                this.openKeyboardHelp();
+            }
+
+            // Arrow keys - Scroll timelines
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                this.scrollAllTimelines(-300);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                this.scrollAllTimelines(300);
+            }
+
+            // S - Toggle sync scroll
+            if (e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                this.toggleSyncScroll();
+            }
+
+            // T - Toggle theme
+            if (e.key === 't' || e.key === 'T') {
+                e.preventDefault();
+                this.cycleTheme();
+            }
+
+            // U - Toggle temperature unit
+            if (e.key === 'u' || e.key === 'U') {
+                e.preventDefault();
+                this.toggleTempUnit();
+            }
+        });
+    }
+
+    // Helper for keyboard shortcuts
+    scrollAllTimelines(amount) {
+        const scrollContainers = document.querySelectorAll('.timeline-scroll');
+        scrollContainers.forEach(container => {
+            container.scrollLeft += amount;
+        });
+    }
+
+    cycleTheme() {
+        const themes = ['light', 'system', 'dark'];
+        const currentIndex = themes.indexOf(this.preferences.theme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        this.changeTheme(themes[nextIndex]);
+    }
+
+    toggleTempUnit() {
+        const newUnit = this.preferences.tempUnit === 'celsius' ? 'fahrenheit' : 'celsius';
+        this.changeTempUnit(newUnit);
     }
 
     // Theme management
@@ -265,12 +411,12 @@ class WeatherTimeline {
         }
 
         this.favoritesList.innerHTML = this.preferences.favorites.map(fav => `
-            <div class="favorite-item" data-lat="${fav.lat}" data-lon="${fav.lon}">
+            <div class="favorite-item" data-lat="${fav.lat}" data-lon="${fav.lon}" data-name="${fav.name}" data-country="${fav.country}">
                 <div class="favorite-item-info">
                     <div class="favorite-item-name">${fav.name}</div>
                     <div class="favorite-item-country">${fav.country}</div>
                 </div>
-                <button class="btn btn-icon btn-danger" onclick="app.removeFavorite(${fav.lat}, ${fav.lon})" title="Remove">
+                <button class="btn btn-icon btn-danger remove-favorite-btn" title="Remove">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"></path>
                     </svg>
@@ -280,13 +426,27 @@ class WeatherTimeline {
 
         // Add click handlers to favorites
         document.querySelectorAll('.favorite-item').forEach(item => {
+            const lat = parseFloat(item.dataset.lat);
+            const lon = parseFloat(item.dataset.lon);
+            const name = item.dataset.name;
+            const country = item.dataset.country;
+
             item.addEventListener('click', (e) => {
-                if (!e.target.closest('.btn-danger')) {
-                    const lat = parseFloat(item.dataset.lat);
-                    const lon = parseFloat(item.dataset.lon);
-                    this.loadWeatherData(lat, lon);
+                if (!e.target.closest('.remove-favorite-btn')) {
+                    this.loadWeatherData(lat, lon, name, country);
                     this.closeSettings();
                 }
+            });
+        });
+
+        // Add remove button handlers
+        document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const item = e.currentTarget.closest('.favorite-item');
+                const lat = parseFloat(item.dataset.lat);
+                const lon = parseFloat(item.dataset.lon);
+                this.removeFavorite(lat, lon);
             });
         });
     }
@@ -308,18 +468,23 @@ class WeatherTimeline {
         }
     }
 
-    // Search autocomplete
+    // Search autocomplete - Optimized
     async handleSearchInput(query) {
         clearTimeout(this.autocompleteTimeout);
+        this.autocompleteSelectedIndex = -1;
 
         if (query.length < 2) {
             this.hideAutocomplete();
             return;
         }
 
+        // Show loading state
+        this.searchAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">Searching...</div></div>';
+        this.searchAutocomplete.style.display = 'block';
+
         this.autocompleteTimeout = setTimeout(async () => {
             try {
-                const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
+                const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en&format=json`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -327,21 +492,22 @@ class WeatherTimeline {
                     this.autocompleteResults = data.results;
                     this.showAutocomplete();
                 } else {
-                    this.hideAutocomplete();
+                    this.searchAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No results found</div></div>';
                 }
             } catch (error) {
                 console.error('Autocomplete error:', error);
                 this.hideAutocomplete();
             }
-        }, 300); // Debounce 300ms
+        }, 250); // Reduced debounce to 250ms for faster response
     }
 
     showAutocomplete() {
         this.searchAutocomplete.innerHTML = this.autocompleteResults.map((result, index) => `
-            <div class="autocomplete-item" data-index="${index}">
+            <div class="autocomplete-item ${index === this.autocompleteSelectedIndex ? 'active' : ''}" data-index="${index}">
                 <div class="autocomplete-item-name">${result.name}</div>
                 <div class="autocomplete-item-details">
                     ${result.admin1 ? result.admin1 + ', ' : ''}${result.country}
+                    ${result.population ? ' • ' + this.formatPopulation(result.population) : ''}
                 </div>
             </div>
         `).join('');
@@ -352,13 +518,40 @@ class WeatherTimeline {
         document.querySelectorAll('.autocomplete-item').forEach(item => {
             item.addEventListener('click', () => {
                 const index = parseInt(item.dataset.index);
-                this.selectAutocompleteItem(index);
+                if (!isNaN(index)) {
+                    this.selectAutocompleteItem(index);
+                }
             });
+
+            // Add hover handler for keyboard navigation
+            item.addEventListener('mouseenter', () => {
+                const index = parseInt(item.dataset.index);
+                if (!isNaN(index)) {
+                    this.autocompleteSelectedIndex = index;
+                    this.updateAutocompleteSelection();
+                }
+            });
+        });
+    }
+
+    formatPopulation(pop) {
+        if (pop >= 1000000) {
+            return (pop / 1000000).toFixed(1) + 'M';
+        } else if (pop >= 1000) {
+            return (pop / 1000).toFixed(0) + 'K';
+        }
+        return pop.toString();
+    }
+
+    updateAutocompleteSelection() {
+        document.querySelectorAll('.autocomplete-item').forEach((item, index) => {
+            item.classList.toggle('active', index === this.autocompleteSelectedIndex);
         });
     }
 
     hideAutocomplete() {
         this.searchAutocomplete.style.display = 'none';
+        this.autocompleteSelectedIndex = -1;
     }
 
     selectAutocompleteItem(index) {
@@ -369,11 +562,39 @@ class WeatherTimeline {
     }
 
     handleSearchKeydown(e) {
+        const isAutocompleteVisible = this.searchAutocomplete.style.display === 'block' &&
+                                      this.autocompleteResults.length > 0;
+
         if (e.key === 'Enter') {
             e.preventDefault();
-            this.searchCity();
+            if (isAutocompleteVisible && this.autocompleteSelectedIndex >= 0) {
+                this.selectAutocompleteItem(this.autocompleteSelectedIndex);
+            } else {
+                this.searchCity();
+            }
         } else if (e.key === 'Escape') {
             this.hideAutocomplete();
+        } else if (e.key === 'ArrowDown' && isAutocompleteVisible) {
+            e.preventDefault();
+            this.autocompleteSelectedIndex = Math.min(
+                this.autocompleteSelectedIndex + 1,
+                this.autocompleteResults.length - 1
+            );
+            this.updateAutocompleteSelection();
+            // Scroll into view
+            const activeItem = document.querySelector('.autocomplete-item.active');
+            if (activeItem) {
+                activeItem.scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'ArrowUp' && isAutocompleteVisible) {
+            e.preventDefault();
+            this.autocompleteSelectedIndex = Math.max(this.autocompleteSelectedIndex - 1, 0);
+            this.updateAutocompleteSelection();
+            // Scroll into view
+            const activeItem = document.querySelector('.autocomplete-item.active');
+            if (activeItem) {
+                activeItem.scrollIntoView({ block: 'nearest' });
+            }
         }
     }
 
@@ -386,8 +607,26 @@ class WeatherTimeline {
 
         this.showLoading();
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                this.loadWeatherData(position.coords.latitude, position.coords.longitude);
+            async (position) => {
+                try {
+                    // Get city name from coordinates
+                    const url = `https://geocoding-api.open-meteo.com/v1/search?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&count=1&language=en&format=json`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    let cityName = 'Current Location';
+                    let country = '';
+
+                    if (data.results && data.results.length > 0) {
+                        cityName = data.results[0].name;
+                        country = data.results[0].country;
+                    }
+
+                    this.loadWeatherData(position.coords.latitude, position.coords.longitude, cityName, country);
+                } catch (error) {
+                    console.error('Geocoding error:', error);
+                    this.loadWeatherData(position.coords.latitude, position.coords.longitude);
+                }
             },
             (error) => {
                 this.hideLoading();
@@ -430,11 +669,25 @@ class WeatherTimeline {
         this.showLoading();
 
         try {
-            // Get location name if not provided
-            if (!cityName) {
-                const locationData = await this.reverseGeocode(lat, lon);
-                cityName = locationData.name;
-                country = locationData.country;
+            // If city name not provided, try to get it from coordinates
+            if (!cityName || cityName === 'Current Location') {
+                try {
+                    const url = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.results && data.results.length > 0) {
+                        cityName = data.results[0].name;
+                        country = data.results[0].country;
+                    } else {
+                        cityName = `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+                        country = '';
+                    }
+                } catch (error) {
+                    console.error('Failed to get city name:', error);
+                    cityName = `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+                    country = '';
+                }
             }
 
             this.currentLocation = { lat, lon, name: cityName, country };
@@ -473,22 +726,6 @@ class WeatherTimeline {
         this.renderAllTimelines();
     }
 
-    // Reverse geocoding
-    async reverseGeocode(lat, lon) {
-        try {
-            // Simple reverse geocoding - just return coordinates if fails
-            return {
-                name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
-                country: ''
-            };
-        } catch (error) {
-            return {
-                name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
-                country: ''
-            };
-        }
-    }
-
     // Fetch weather history
     async fetchWeatherHistory(lat, lon, endDate) {
         const now = new Date();
@@ -510,7 +747,8 @@ class WeatherTimeline {
         }
 
         let end = new Date(endDate);
-        if (isCurrentYear && end > now) {
+        // Always use today's date for current year
+        if (isCurrentYear) {
             end = new Date(now);
         }
 
@@ -599,17 +837,116 @@ class WeatherTimeline {
 
     // Timeline management
     openAddTimelineModal() {
+        // Set default to next available year
+        const existingYears = this.timelines.map(t => t.yearsAgo);
+        let nextYear = 1;
+        while (existingYears.includes(nextYear) && nextYear <= 86) {
+            nextYear++;
+        }
+        this.yearsAgoInput.value = nextYear;
         this.addTimelineModal.style.display = 'flex';
+        setTimeout(() => this.yearsAgoInput.focus(), 100);
     }
 
     closeAddTimelineModal() {
         this.addTimelineModal.style.display = 'none';
     }
 
+    // Keyboard Help Modal
+    openKeyboardHelp() {
+        this.keyboardHelpModal.style.display = 'flex';
+    }
+
+    closeKeyboardHelpModal() {
+        this.keyboardHelpModal.style.display = 'none';
+    }
+
+    // Jump to Date Modal
+    openJumpToDateModal() {
+        if (!this.currentLocation) {
+            this.showError('Please select a location first');
+            return;
+        }
+
+        // Set default to today
+        const today = new Date();
+        this.jumpDateInput.value = today.toISOString().split('T')[0];
+        this.jumpDateInput.max = today.toISOString().split('T')[0]; // Can't jump to future
+
+        // Set min to 86 years ago (data availability)
+        const minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 86);
+        this.jumpDateInput.min = minDate.toISOString().split('T')[0];
+
+        this.jumpToDateModal.style.display = 'flex';
+        setTimeout(() => this.jumpDateInput.focus(), 100);
+    }
+
+    closeJumpToDateModal() {
+        this.jumpToDateModal.style.display = 'none';
+    }
+
+    jumpToDate() {
+        const selectedDate = new Date(this.jumpDateInput.value);
+
+        if (isNaN(selectedDate.getTime())) {
+            this.showError('Please select a valid date');
+            return;
+        }
+
+        const today = new Date();
+        if (selectedDate > today) {
+            this.showError('Cannot jump to a future date');
+            return;
+        }
+
+        const minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 86);
+        if (selectedDate < minDate) {
+            this.showError('Date is beyond available historical data (86 years)');
+            return;
+        }
+
+        this.closeJumpToDateModal();
+
+        // Calculate the days from today to selected date
+        const daysDiff = Math.floor((today - selectedDate) / (1000 * 60 * 60 * 24));
+
+        // Scroll to the date
+        this.scrollToDate(daysDiff);
+    }
+
+    scrollToDate(daysBack) {
+        const scrollContainers = document.querySelectorAll('.timeline-scroll');
+
+        scrollContainers.forEach(container => {
+            let scrollTarget;
+
+            if (this.currentView === 'daily') {
+                // Each day is approximately 150px wide
+                scrollTarget = daysBack * 150;
+            } else if (this.currentView === 'weekly') {
+                // Each week is approximately 150px wide
+                const weeksBack = Math.floor(daysBack / 7);
+                scrollTarget = weeksBack * 150;
+            } else if (this.currentView === 'monthly') {
+                // Each month is approximately 150px wide
+                const monthsBack = Math.floor(daysBack / 30);
+                scrollTarget = monthsBack * 150;
+            }
+
+            // Smooth scroll to target
+            container.scrollTo({
+                left: scrollTarget,
+                behavior: 'smooth'
+            });
+        });
+    }
+
     async addTimeline() {
         const yearsAgo = parseInt(this.yearsAgoInput.value);
 
-        if (yearsAgo < 1 || yearsAgo > 86) {
+        if (isNaN(yearsAgo) || yearsAgo < 1 || yearsAgo > 86) {
             this.showError('Please enter a value between 1 and 86');
             return;
         }
@@ -637,6 +974,8 @@ class WeatherTimeline {
         } catch (error) {
             this.hideLoading();
             this.showError('Failed to add timeline: ' + error.message);
+            // Remove the timeline if it failed to load
+            this.timelines = this.timelines.filter(t => t.yearsAgo !== yearsAgo);
         }
     }
 
@@ -649,12 +988,18 @@ class WeatherTimeline {
         this.timelines = this.timelines.filter(t => t.yearsAgo !== yearsAgo);
         delete this.weatherDataCache[yearsAgo];
         this.renderAllTimelines();
-        this.showSuccess(`Removed timeline`);
+        this.showSuccess('Removed timeline');
     }
 
     toggleSyncScroll() {
         this.syncScroll = !this.syncScroll;
         this.syncScrollBtn.classList.toggle('active', this.syncScroll);
+
+        if (this.syncScroll) {
+            this.showSuccess('Scroll synchronization enabled');
+        } else {
+            this.showSuccess('Scroll synchronization disabled');
+        }
     }
 
     // Render all timelines
@@ -686,18 +1031,21 @@ class WeatherTimeline {
                       timeline.yearsAgo === 1 ? 'One Year Ago' :
                       `${timeline.yearsAgo} Years Ago`;
 
+        // Fixed: Moved year label to center of header
         section.innerHTML = `
             <div class="timeline-header">
-                <h2>${title}</h2>
-                <span class="year-label">${year}</span>
+                <h2>
+                    ${title}
+                    <span class="year-label-inline">${year}</span>
+                </h2>
+                ${timeline.yearsAgo > 0 ? `
+                    <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                ` : ''}
             </div>
-            ${timeline.yearsAgo > 0 ? `
-                <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6l12 12"></path>
-                    </svg>
-                </button>
-            ` : ''}
             <div class="timeline-wrapper">
                 <button class="scroll-btn scroll-left">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -748,7 +1096,7 @@ class WeatherTimeline {
             scrollContainer.scrollLeft += 300;
         });
 
-        // Scroll to end
+        // Scroll to end (today's date)
         setTimeout(() => {
             scrollContainer.scrollLeft = scrollContainer.scrollWidth;
         }, 100);
@@ -758,11 +1106,13 @@ class WeatherTimeline {
 
     setupScrollSync() {
         const scrollContainers = document.querySelectorAll('.timeline-scroll');
+        let isScrolling = false;
 
         scrollContainers.forEach(container => {
             container.addEventListener('scroll', (e) => {
-                if (!this.syncScroll) return;
+                if (!this.syncScroll || isScrolling) return;
 
+                isScrolling = true;
                 const scrollPercent = e.target.scrollLeft / (e.target.scrollWidth - e.target.clientWidth);
 
                 scrollContainers.forEach(other => {
@@ -771,6 +1121,10 @@ class WeatherTimeline {
                         other.scrollLeft = targetScroll;
                     }
                 });
+
+                setTimeout(() => {
+                    isScrolling = false;
+                }, 50);
             });
         });
     }
@@ -858,6 +1212,19 @@ class WeatherTimeline {
         const temp = this.convertTemp(data.temp);
         const unit = this.getTempUnit();
 
+        // Add mini temperature chart (sparkline)
+        let chartHTML = '';
+        if (data.tempMax !== undefined && data.tempMin !== undefined) {
+            const tempMax = this.convertTemp(data.tempMax);
+            const tempMin = this.convertTemp(data.tempMin);
+            chartHTML = `
+                <div class="temp-range">
+                    <span class="temp-max" title="High">↑${tempMax}${unit}</span>
+                    <span class="temp-min" title="Low">↓${tempMin}${unit}</span>
+                </div>
+            `;
+        }
+
         let comparisonHTML = '';
         if (comparisonTemp !== null) {
             const currentTemp = this.convertTemp(comparisonTemp);
@@ -876,6 +1243,7 @@ class WeatherTimeline {
             <div class="timeline-day">${dayStr}</div>
             <div class="weather-icon">${data.icon}</div>
             <div class="weather-temp">${temp}${unit}</div>
+            ${chartHTML}
             <div class="weather-condition">${data.description}</div>
             ${comparisonHTML}
         `;

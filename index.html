@@ -17,6 +17,13 @@
                     <p class="subtitle">Compare weather patterns across years</p>
                 </div>
                 <div class="header-controls">
+                    <button id="helpBtn" class="btn btn-icon" title="Keyboard Shortcuts (?)" aria-label="Help">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
                     <button id="settingsBtn" class="btn btn-icon" title="Settings" aria-label="Settings">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3"></circle>
@@ -113,6 +120,15 @@
                     </svg>
                     Add Comparison Year
                 </button>
+                <button id="jumpToDateBtn" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span class="btn-text">Jump to Date</span>
+                </button>
                 <button id="syncScrollBtn" class="btn btn-outline active" title="Synchronized scrolling">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M23 4v6h-6M1 20v-6h6"></path>
@@ -160,6 +176,71 @@
 
         <!-- Success Message -->
         <div id="successMessage" class="success-message" style="display: none;"></div>
+
+        <!-- Keyboard Shortcuts Help -->
+        <div id="keyboardHelp" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Keyboard Shortcuts</h3>
+                    <button id="closeKeyboardHelp" class="btn btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="keyboard-shortcuts-list">
+                        <div class="shortcut-item">
+                            <kbd>ESC</kbd>
+                            <span>Close modals, settings, or autocomplete</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>←</kbd> <kbd>→</kbd>
+                            <span>Scroll timelines left/right</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>S</kbd>
+                            <span>Toggle synchronized scrolling</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>T</kbd>
+                            <span>Cycle through themes (Light → System → Dark)</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>U</kbd>
+                            <span>Toggle temperature unit (°C ↔ °F)</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>?</kbd>
+                            <span>Show this help</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jump to Date Modal -->
+        <div id="jumpToDateModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Jump to Date</h3>
+                    <button id="closeJumpToDate" class="btn btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label for="jumpDate">Select a date to view:</label>
+                    <input type="date" id="jumpDate" />
+                    <p class="help-text">Navigate to a specific date on all timelines</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelJumpToDate" class="btn btn-secondary">Cancel</button>
+                    <button id="confirmJumpToDate" class="btn btn-primary">Jump to Date</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
