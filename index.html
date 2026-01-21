@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Timeline - Year Over Year Comparison</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Weather Timeline</h1>
+            <p class="subtitle">Compare weather patterns year over year</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="location-controls">
+                <button id="geolocationBtn" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M2 12h20"></path>
+                        <circle cx="12" cy="12" r="7"></circle>
+                    </svg>
+                    Use My Location
+                </button>
+                <div class="search-box">
+                    <input type="text" id="citySearch" placeholder="Search for a city..." />
+                    <button id="searchBtn" class="btn btn-secondary">Search</button>
+                </div>
+            </div>
+
+            <div class="view-controls">
+                <label>View:</label>
+                <div class="btn-group">
+                    <button class="btn btn-view active" data-view="daily">Daily</button>
+                    <button class="btn btn-view" data-view="weekly">Weekly</button>
+                    <button class="btn btn-view" data-view="monthly">Monthly</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Display -->
+        <div id="locationDisplay" class="location-display">
+            <span id="currentLocation">Select a location to view weather data</span>
+        </div>
+
+        <!-- API Key Input (for first-time setup) -->
+        <div id="apiKeySection" class="api-key-section">
+            <div class="api-key-notice">
+                <h3>OpenWeatherMap API Key Required</h3>
+                <p>To use this app, you need a free API key from OpenWeatherMap.</p>
+                <ol>
+                    <li>Visit <a href="https://openweathermap.org/api" target="_blank">OpenWeatherMap API</a></li>
+                    <li>Sign up for a free account</li>
+                    <li>Get your API key</li>
+                    <li>Enter it below:</li>
+                </ol>
+                <div class="api-key-input-group">
+                    <input type="text" id="apiKeyInput" placeholder="Enter your API key..." />
+                    <button id="saveApiKeyBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Container -->
+        <div id="timelineContainer" class="timeline-container" style="display: none;">
+            <!-- Current Year Timeline -->
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <h2>Current Weather</h2>
+                    <span id="currentYearLabel" class="year-label">2026</span>
+                </div>
+                <div class="timeline-wrapper">
+                    <button class="scroll-btn scroll-left" data-timeline="current">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div class="timeline-scroll" id="currentTimeline">
+                        <div class="timeline-track" id="currentTrack">
+                            <!-- Timeline items will be inserted here -->
+                        </div>
+                    </div>
+                    <button class="scroll-btn scroll-right" data-timeline="current">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Previous Year Timeline -->
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <h2>One Year Ago</h2>
+                    <span id="previousYearLabel" class="year-label">2025</span>
+                </div>
+                <div class="timeline-wrapper">
+                    <button class="scroll-btn scroll-left" data-timeline="previous">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div class="timeline-scroll" id="previousTimeline">
+                        <div class="timeline-track" id="previousTrack">
+                            <!-- Timeline items will be inserted here -->
+                        </div>
+                    </div>
+                    <button class="scroll-btn scroll-right" data-timeline="previous">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading weather data...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
