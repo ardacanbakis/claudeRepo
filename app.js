@@ -771,7 +771,18 @@ class WeatherTimeline {
         const startDate = this.formatDateForAPI(start);
         const endDateStr = this.formatDateForAPI(end);
 
-        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDateStr}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,weathercode&timezone=auto`;
+        // Check if we need recent data (within last 7 days) or historical data
+        const daysSinceEnd = Math.floor((now - end) / (1000 * 60 * 60 * 24));
+        const isRecentData = daysSinceEnd < 7;
+
+        let url;
+        if (isRecentData) {
+            // Use forecast API for recent/current data (includes past 7 days + forecast)
+            url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&past_days=92&forecast_days=1`;
+        } else {
+            // Use archive API for historical data
+            url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDateStr}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,weathercode&timezone=auto`;
+        }
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -779,20 +790,29 @@ class WeatherTimeline {
         }
 
         const data = await response.json();
+
+        if (!data.daily || !data.daily.time) {
+            throw new Error('Invalid weather data received');
+        }
+
         const weatherData = [];
 
         for (let i = 0; i < data.daily.time.length; i++) {
             const date = new Date(data.daily.time[i]);
-            weatherData.push({
-                date: date,
-                temp: data.daily.temperature_2m_mean[i],
-                tempMax: data.daily.temperature_2m_max[i],
-                tempMin: data.daily.temperature_2m_min[i],
-                weatherCode: data.daily.weathercode[i],
-                condition: this.getConditionFromCode(data.daily.weathercode[i]),
-                description: this.getDescriptionFromCode(data.daily.weathercode[i]),
-                icon: this.getEmojiFromCode(data.daily.weathercode[i])
-            });
+
+            // Filter to only include dates in our requested range
+            if (date >= start && date <= end) {
+                weatherData.push({
+                    date: date,
+                    temp: data.daily.temperature_2m_mean[i],
+                    tempMax: data.daily.temperature_2m_max[i],
+                    tempMin: data.daily.temperature_2m_min[i],
+                    weatherCode: data.daily.weathercode[i],
+                    condition: this.getConditionFromCode(data.daily.weathercode[i]),
+                    description: this.getDescriptionFromCode(data.daily.weathercode[i]),
+                    icon: this.getEmojiFromCode(data.daily.weathercode[i])
+                });
+            }
         }
 
         return weatherData;
