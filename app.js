@@ -1,51 +1,143 @@
-// Weather Timeline App with Open-Meteo API
+// Weather Timeline App with Enhanced Features
 class WeatherTimeline {
     constructor() {
+        // Load preferences from localStorage
+        this.preferences = this.loadPreferences();
+
+        // App state
         this.currentLocation = null;
-        this.currentView = 'daily'; // daily, weekly, monthly
-        this.weatherData = {
-            current: [],
-            previous: []
-        };
+        this.currentView = this.preferences.view || 'daily';
+        this.timelines = [{ yearsAgo: 0 }, { yearsAgo: 1 }]; // Start with current year and 1 year ago
+        this.weatherDataCache = {}; // Cache weather data by year
+        this.syncScroll = true;
+        this.autocompleteResults = [];
+        this.autocompleteTimeout = null;
 
         this.init();
     }
 
+    // Initialize app
     init() {
         this.setupElements();
+        this.applyPreferences();
         this.setupEventListeners();
+        this.renderFavorites();
     }
 
+    // Load preferences from localStorage
+    loadPreferences() {
+        const defaults = {
+            theme: 'system',
+            tempUnit: 'celsius',
+            view: 'daily',
+            favorites: []
+        };
+
+        try {
+            const saved = localStorage.getItem('weather_timeline_prefs');
+            return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+        } catch (error) {
+            console.error('Failed to load preferences:', error);
+            return defaults;
+        }
+    }
+
+    // Save preferences to localStorage
+    savePreferences() {
+        try {
+            localStorage.setItem('weather_timeline_prefs', JSON.stringify(this.preferences));
+        } catch (error) {
+            console.error('Failed to save preferences:', error);
+        }
+    }
+
+    // Apply saved preferences
+    applyPreferences() {
+        // Apply theme
+        document.documentElement.setAttribute('data-theme', this.preferences.theme);
+
+        // Update theme buttons
+        document.querySelectorAll('[data-theme]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === this.preferences.theme);
+        });
+
+        // Update temp unit buttons
+        document.querySelectorAll('[data-unit]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.unit === this.preferences.tempUnit);
+        });
+
+        // Update view buttons
+        document.querySelectorAll('[data-view]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === this.currentView);
+        });
+    }
+
+    // Setup DOM elements
     setupElements() {
-        // Control elements
+        // Settings
+        this.settingsBtn = document.getElementById('settingsBtn');
+        this.settingsPanel = document.getElementById('settingsPanel');
+        this.closeSettingsBtn = document.getElementById('closeSettings');
+        this.favoritesList = document.getElementById('favoritesList');
+
+        // Location controls
         this.geolocationBtn = document.getElementById('geolocationBtn');
         this.citySearch = document.getElementById('citySearch');
         this.searchBtn = document.getElementById('searchBtn');
-        this.viewBtns = document.querySelectorAll('.btn-view');
+        this.searchAutocomplete = document.getElementById('searchAutocomplete');
+        this.viewBtns = document.querySelectorAll('.btn-view[data-view]');
 
-        // Display elements
+        // Display
         this.locationDisplay = document.getElementById('currentLocation');
-        this.timelineContainer = document.getElementById('timelineContainer');
-        this.currentTrack = document.getElementById('currentTrack');
-        this.previousTrack = document.getElementById('previousTrack');
-        this.currentYearLabel = document.getElementById('currentYearLabel');
-        this.previousYearLabel = document.getElementById('previousYearLabel');
+        this.favoriteBtn = document.getElementById('favoriteBtn');
+        this.timelineControls = document.getElementById('timelineControls');
+        this.timelinesWrapper = document.getElementById('timelinesWrapper');
 
-        // Utility elements
+        // Timeline controls
+        this.addTimelineBtn = document.getElementById('addTimelineBtn');
+        this.syncScrollBtn = document.getElementById('syncScrollBtn');
+
+        // Modal
+        this.addTimelineModal = document.getElementById('addTimelineModal');
+        this.closeModal = document.getElementById('closeModal');
+        this.yearsAgoInput = document.getElementById('yearsAgo');
+        this.cancelAddTimeline = document.getElementById('cancelAddTimeline');
+        this.confirmAddTimeline = document.getElementById('confirmAddTimeline');
+
+        // Utility
         this.loadingIndicator = document.getElementById('loadingIndicator');
         this.errorMessage = document.getElementById('errorMessage');
-
-        // Scroll buttons
-        this.scrollBtns = document.querySelectorAll('.scroll-btn');
+        this.successMessage = document.getElementById('successMessage');
     }
 
+    // Setup event listeners
     setupEventListeners() {
+        // Settings
+        this.settingsBtn.addEventListener('click', () => this.openSettings());
+        this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
+
+        // Theme buttons
+        document.querySelectorAll('[data-theme]').forEach(btn => {
+            btn.addEventListener('click', (e) => this.changeTheme(e.target.dataset.theme));
+        });
+
+        // Temperature unit buttons
+        document.querySelectorAll('[data-unit]').forEach(btn => {
+            btn.addEventListener('click', (e) => this.changeTempUnit(e.target.dataset.unit));
+        });
+
         // Location
         this.geolocationBtn.addEventListener('click', () => this.useGeolocation());
         this.searchBtn.addEventListener('click', () => this.searchCity());
-        this.citySearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.searchCity();
+        this.citySearch.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
+        this.citySearch.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
+        this.citySearch.addEventListener('blur', () => {
+            // Delay hiding to allow click on autocomplete item
+            setTimeout(() => this.hideAutocomplete(), 200);
         });
+
+        // Favorite button
+        this.favoriteBtn.addEventListener('click', () => this.toggleFavorite());
 
         // View toggle
         this.viewBtns.forEach(btn => {
@@ -53,28 +145,236 @@ class WeatherTimeline {
                 this.viewBtns.forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 this.currentView = e.target.dataset.view;
+                this.preferences.view = this.currentView;
+                this.savePreferences();
                 if (this.currentLocation) {
-                    this.loadWeatherData(this.currentLocation.lat, this.currentLocation.lon);
+                    this.loadAllWeatherData();
                 }
             });
         });
 
-        // Scroll buttons
-        this.scrollBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const timeline = e.currentTarget.dataset.timeline;
-                const scrollElement = timeline === 'current'
-                    ? document.getElementById('currentTimeline')
-                    : document.getElementById('previousTimeline');
+        // Timeline controls
+        this.addTimelineBtn.addEventListener('click', () => this.openAddTimelineModal());
+        this.syncScrollBtn.addEventListener('click', () => this.toggleSyncScroll());
 
-                const scrollAmount = 300;
-                if (e.currentTarget.classList.contains('scroll-left')) {
-                    scrollElement.scrollLeft -= scrollAmount;
+        // Modal
+        this.closeModal.addEventListener('click', () => this.closeAddTimelineModal());
+        this.cancelAddTimeline.addEventListener('click', () => this.closeAddTimelineModal());
+        this.confirmAddTimeline.addEventListener('click', () => this.addTimeline());
+
+        // Close modal on background click
+        this.addTimelineModal.addEventListener('click', (e) => {
+            if (e.target === this.addTimelineModal) {
+                this.closeAddTimelineModal();
+            }
+        });
+
+        // Close settings on background click
+        document.addEventListener('click', (e) => {
+            if (this.settingsPanel.style.display === 'block' &&
+                !this.settingsPanel.contains(e.target) &&
+                e.target !== this.settingsBtn &&
+                !this.settingsBtn.contains(e.target)) {
+                this.closeSettings();
+            }
+        });
+    }
+
+    // Theme management
+    changeTheme(theme) {
+        this.preferences.theme = theme;
+        this.savePreferences();
+        document.documentElement.setAttribute('data-theme', theme);
+
+        document.querySelectorAll('[data-theme]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === theme);
+        });
+    }
+
+    // Temperature unit management
+    changeTempUnit(unit) {
+        this.preferences.tempUnit = unit;
+        this.savePreferences();
+
+        document.querySelectorAll('[data-unit]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.unit === unit);
+        });
+
+        // Re-render timelines with new unit
+        if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
+            this.renderAllTimelines();
+        }
+    }
+
+    // Convert temperature
+    convertTemp(celsius) {
+        if (this.preferences.tempUnit === 'fahrenheit') {
+            return Math.round((celsius * 9/5) + 32);
+        }
+        return Math.round(celsius);
+    }
+
+    getTempUnit() {
+        return this.preferences.tempUnit === 'fahrenheit' ? '°F' : '°C';
+    }
+
+    // Settings panel
+    openSettings() {
+        this.settingsPanel.style.display = 'block';
+    }
+
+    closeSettings() {
+        this.settingsPanel.style.display = 'none';
+    }
+
+    // Favorites management
+    toggleFavorite() {
+        if (!this.currentLocation) return;
+
+        const favorite = {
+            name: this.currentLocation.name,
+            country: this.currentLocation.country,
+            lat: this.currentLocation.lat,
+            lon: this.currentLocation.lon
+        };
+
+        const index = this.preferences.favorites.findIndex(
+            f => f.lat === favorite.lat && f.lon === favorite.lon
+        );
+
+        if (index >= 0) {
+            // Remove from favorites
+            this.preferences.favorites.splice(index, 1);
+            this.favoriteBtn.classList.remove('active');
+            this.showSuccess('Removed from favorites');
+        } else {
+            // Add to favorites
+            this.preferences.favorites.push(favorite);
+            this.favoriteBtn.classList.add('active');
+            this.showSuccess('Added to favorites');
+        }
+
+        this.savePreferences();
+        this.renderFavorites();
+    }
+
+    renderFavorites() {
+        if (this.preferences.favorites.length === 0) {
+            this.favoritesList.innerHTML = '<p class="empty-state">No favorites yet. Search for a city and click the star!</p>';
+            return;
+        }
+
+        this.favoritesList.innerHTML = this.preferences.favorites.map(fav => `
+            <div class="favorite-item" data-lat="${fav.lat}" data-lon="${fav.lon}">
+                <div class="favorite-item-info">
+                    <div class="favorite-item-name">${fav.name}</div>
+                    <div class="favorite-item-country">${fav.country}</div>
+                </div>
+                <button class="btn btn-icon btn-danger" onclick="app.removeFavorite(${fav.lat}, ${fav.lon})" title="Remove">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `).join('');
+
+        // Add click handlers to favorites
+        document.querySelectorAll('.favorite-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (!e.target.closest('.btn-danger')) {
+                    const lat = parseFloat(item.dataset.lat);
+                    const lon = parseFloat(item.dataset.lon);
+                    this.loadWeatherData(lat, lon);
+                    this.closeSettings();
+                }
+            });
+        });
+    }
+
+    removeFavorite(lat, lon) {
+        const index = this.preferences.favorites.findIndex(
+            f => f.lat === lat && f.lon === lon
+        );
+
+        if (index >= 0) {
+            this.preferences.favorites.splice(index, 1);
+            this.savePreferences();
+            this.renderFavorites();
+
+            // Update favorite button if current location was removed
+            if (this.currentLocation && this.currentLocation.lat === lat && this.currentLocation.lon === lon) {
+                this.favoriteBtn.classList.remove('active');
+            }
+        }
+    }
+
+    // Search autocomplete
+    async handleSearchInput(query) {
+        clearTimeout(this.autocompleteTimeout);
+
+        if (query.length < 2) {
+            this.hideAutocomplete();
+            return;
+        }
+
+        this.autocompleteTimeout = setTimeout(async () => {
+            try {
+                const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    this.autocompleteResults = data.results;
+                    this.showAutocomplete();
                 } else {
-                    scrollElement.scrollLeft += scrollAmount;
+                    this.hideAutocomplete();
                 }
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+                this.hideAutocomplete();
+            }
+        }, 300); // Debounce 300ms
+    }
+
+    showAutocomplete() {
+        this.searchAutocomplete.innerHTML = this.autocompleteResults.map((result, index) => `
+            <div class="autocomplete-item" data-index="${index}">
+                <div class="autocomplete-item-name">${result.name}</div>
+                <div class="autocomplete-item-details">
+                    ${result.admin1 ? result.admin1 + ', ' : ''}${result.country}
+                </div>
+            </div>
+        `).join('');
+
+        this.searchAutocomplete.style.display = 'block';
+
+        // Add click handlers
+        document.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const index = parseInt(item.dataset.index);
+                this.selectAutocompleteItem(index);
             });
         });
+    }
+
+    hideAutocomplete() {
+        this.searchAutocomplete.style.display = 'none';
+    }
+
+    selectAutocompleteItem(index) {
+        const result = this.autocompleteResults[index];
+        this.citySearch.value = result.name;
+        this.hideAutocomplete();
+        this.loadWeatherData(result.latitude, result.longitude, result.name, result.country);
+    }
+
+    handleSearchKeydown(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.searchCity();
+        } else if (e.key === 'Escape') {
+            this.hideAutocomplete();
+        }
     }
 
     // Geolocation
@@ -87,9 +387,7 @@ class WeatherTimeline {
         this.showLoading();
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                this.loadWeatherData(lat, lon);
+                this.loadWeatherData(position.coords.latitude, position.coords.longitude);
             },
             (error) => {
                 this.hideLoading();
@@ -98,7 +396,7 @@ class WeatherTimeline {
         );
     }
 
-    // City Search using Open-Meteo Geocoding API
+    // City search
     async searchCity() {
         const cityName = this.citySearch.value.trim();
         if (!cityName) {
@@ -107,15 +405,11 @@ class WeatherTimeline {
         }
 
         this.showLoading();
+        this.hideAutocomplete();
 
         try {
             const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
             const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error('Failed to search for city');
-            }
-
             const data = await response.json();
 
             if (!data.results || data.results.length === 0) {
@@ -131,7 +425,7 @@ class WeatherTimeline {
         }
     }
 
-    // Load Weather Data
+    // Load weather data for all timelines
     async loadWeatherData(lat, lon, cityName = null, country = null) {
         this.showLoading();
 
@@ -146,18 +440,12 @@ class WeatherTimeline {
             this.currentLocation = { lat, lon, name: cityName, country };
             this.updateLocationDisplay();
 
-            // Load current year data
-            const currentYearData = await this.fetchWeatherHistory(lat, lon, new Date());
+            // Clear cache when location changes
+            this.weatherDataCache = {};
 
-            // Load previous year data
-            const previousYearDate = new Date();
-            previousYearDate.setFullYear(previousYearDate.getFullYear() - 1);
-            const previousYearData = await this.fetchWeatherHistory(lat, lon, previousYearDate);
+            // Load all weather data
+            await this.loadAllWeatherData();
 
-            this.weatherData.current = currentYearData;
-            this.weatherData.previous = previousYearData;
-
-            this.renderTimelines();
             this.hideLoading();
             this.showTimelines();
 
@@ -167,62 +455,60 @@ class WeatherTimeline {
         }
     }
 
-    // Reverse Geocoding using Open-Meteo
-    async reverseGeocode(lat, lon) {
-        // Open-Meteo doesn't have reverse geocoding, so we'll use a simple approach
-        // We'll search for nearby locations and pick the closest one
-        const url = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`;
+    async loadAllWeatherData() {
+        const promises = this.timelines.map(async (timeline) => {
+            const date = new Date();
+            date.setFullYear(date.getFullYear() - timeline.yearsAgo);
 
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                // If reverse geocoding fails, just use coordinates
-                return {
-                    name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
-                    country: ''
-                };
-            }
+            const data = await this.fetchWeatherHistory(
+                this.currentLocation.lat,
+                this.currentLocation.lon,
+                date
+            );
 
-            const data = await response.json();
-            if (data.results && data.results.length > 0) {
-                return {
-                    name: data.results[0].name,
-                    country: data.results[0].country || ''
-                };
-            }
-        } catch (error) {
-            console.error('Reverse geocoding failed:', error);
-        }
+            this.weatherDataCache[timeline.yearsAgo] = data;
+        });
 
-        // Fallback to coordinates
-        return {
-            name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
-            country: ''
-        };
+        await Promise.all(promises);
+        this.renderAllTimelines();
     }
 
-    // Fetch Weather History using Open-Meteo Archive API
+    // Reverse geocoding
+    async reverseGeocode(lat, lon) {
+        try {
+            // Simple reverse geocoding - just return coordinates if fails
+            return {
+                name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
+                country: ''
+            };
+        } catch (error) {
+            return {
+                name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
+                country: ''
+            };
+        }
+    }
+
+    // Fetch weather history
     async fetchWeatherHistory(lat, lon, endDate) {
         const now = new Date();
         const isCurrentYear = endDate.getFullYear() === now.getFullYear();
 
-        // Determine how many data points to fetch based on view
         let numDays;
         switch (this.currentView) {
             case 'daily':
-                numDays = 30; // 30 days
+                numDays = 30;
                 break;
             case 'weekly':
-                numDays = 84; // 12 weeks
+                numDays = 84;
                 break;
             case 'monthly':
-                numDays = 365; // 12 months
+                numDays = 365;
                 break;
             default:
                 numDays = 30;
         }
 
-        // Calculate start and end dates
         let end = new Date(endDate);
         if (isCurrentYear && end > now) {
             end = new Date(now);
@@ -231,48 +517,36 @@ class WeatherTimeline {
         let start = new Date(end);
         start.setDate(start.getDate() - numDays);
 
-        // Format dates for API (YYYY-MM-DD)
         const startDate = this.formatDateForAPI(start);
         const endDateStr = this.formatDateForAPI(end);
 
-        // Fetch weather data from Open-Meteo
-        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDateStr}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&timezone=auto`;
+        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDateStr}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,weathercode&timezone=auto`;
 
-        try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch weather data');
-            }
-
-            const data = await response.json();
-
-            // Transform the data into our format
-            const weatherData = [];
-            for (let i = 0; i < data.daily.time.length; i++) {
-                const date = new Date(data.daily.time[i]);
-                weatherData.push({
-                    date: date,
-                    temp: Math.round(data.daily.temperature_2m_mean[i]),
-                    tempMax: Math.round(data.daily.temperature_2m_max[i]),
-                    tempMin: Math.round(data.daily.temperature_2m_min[i]),
-                    weatherCode: data.daily.weathercode[i],
-                    precipitation: data.daily.precipitation_sum[i],
-                    condition: this.getConditionFromCode(data.daily.weathercode[i]),
-                    description: this.getDescriptionFromCode(data.daily.weathercode[i]),
-                    icon: this.getEmojiFromCode(data.daily.weathercode[i])
-                });
-            }
-
-            return weatherData;
-
-        } catch (error) {
-            console.error('Failed to fetch historical weather:', error);
-            throw error;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to fetch weather data');
         }
+
+        const data = await response.json();
+        const weatherData = [];
+
+        for (let i = 0; i < data.daily.time.length; i++) {
+            const date = new Date(data.daily.time[i]);
+            weatherData.push({
+                date: date,
+                temp: data.daily.temperature_2m_mean[i],
+                tempMax: data.daily.temperature_2m_max[i],
+                tempMin: data.daily.temperature_2m_min[i],
+                weatherCode: data.daily.weathercode[i],
+                condition: this.getConditionFromCode(data.daily.weathercode[i]),
+                description: this.getDescriptionFromCode(data.daily.weathercode[i]),
+                icon: this.getEmojiFromCode(data.daily.weathercode[i])
+            });
+        }
+
+        return weatherData;
     }
 
-    // Format date for API (YYYY-MM-DD)
     formatDateForAPI(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -280,54 +554,31 @@ class WeatherTimeline {
         return `${year}-${month}-${day}`;
     }
 
-    // Map WMO Weather codes to conditions
-    // https://open-meteo.com/en/docs
+    // Weather code mappings
     getConditionFromCode(code) {
         if (code === 0) return 'Clear';
         if (code >= 1 && code <= 3) return 'Clouds';
         if (code >= 45 && code <= 48) return 'Fog';
-        if (code >= 51 && code <= 55) return 'Drizzle';
-        if (code >= 56 && code <= 57) return 'Drizzle';
-        if (code >= 61 && code <= 65) return 'Rain';
-        if (code >= 66 && code <= 67) return 'Rain';
-        if (code >= 71 && code <= 75) return 'Snow';
-        if (code >= 77 && code <= 77) return 'Snow';
-        if (code >= 80 && code <= 82) return 'Rain';
-        if (code >= 85 && code <= 86) return 'Snow';
+        if (code >= 51 && code <= 57) return 'Drizzle';
+        if (code >= 61 && code <= 67) return 'Rain';
+        if (code >= 71 && code <= 77) return 'Snow';
+        if (code >= 80 && code <= 86) return 'Rain';
         if (code >= 95 && code <= 99) return 'Thunderstorm';
         return 'Unknown';
     }
 
     getDescriptionFromCode(code) {
         const descriptions = {
-            0: 'clear sky',
-            1: 'mainly clear',
-            2: 'partly cloudy',
-            3: 'overcast',
-            45: 'foggy',
-            48: 'depositing rime fog',
-            51: 'light drizzle',
-            53: 'moderate drizzle',
-            55: 'dense drizzle',
-            56: 'light freezing drizzle',
-            57: 'dense freezing drizzle',
-            61: 'slight rain',
-            63: 'moderate rain',
-            65: 'heavy rain',
-            66: 'light freezing rain',
-            67: 'heavy freezing rain',
-            71: 'slight snow',
-            73: 'moderate snow',
-            75: 'heavy snow',
-            77: 'snow grains',
-            80: 'slight rain showers',
-            81: 'moderate rain showers',
-            82: 'violent rain showers',
-            85: 'slight snow showers',
-            86: 'heavy snow showers',
-            95: 'thunderstorm',
-            96: 'thunderstorm with slight hail',
-            99: 'thunderstorm with heavy hail'
+            0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast',
+            45: 'foggy', 48: 'depositing rime fog',
+            51: 'light drizzle', 53: 'moderate drizzle', 55: 'dense drizzle',
+            56: 'light freezing drizzle', 57: 'dense freezing drizzle',
+            61: 'slight rain', 63: 'moderate rain', 65: 'heavy rain',
+            66: 'light freezing rain', 67: 'heavy freezing rain',
+            71: 'slight snow', 73: 'moderate snow', 75: 'heavy snow', 77: 'snow grains',
+            80: 'slight rain showers', 81: 'moderate rain showers', 82: 'violent rain showers',
+            85: 'slight snow showers', 86: 'heavy snow showers',
+            95: 'thunderstorm', 96: 'thunderstorm with slight hail', 99: 'thunderstorm with heavy hail'
         };
         return descriptions[code] || 'unknown';
     }
@@ -338,8 +589,7 @@ class WeatherTimeline {
         if (code === 3) return '☁️';
         if (code >= 45 && code <= 48) return '🌫️';
         if (code >= 51 && code <= 57) return '🌦️';
-        if (code >= 61 && code <= 65) return '🌧️';
-        if (code >= 66 && code <= 67) return '🌧️';
+        if (code >= 61 && code <= 67) return '🌧️';
         if (code >= 71 && code <= 77) return '❄️';
         if (code >= 80 && code <= 82) return '🌧️';
         if (code >= 85 && code <= 86) return '❄️';
@@ -347,43 +597,184 @@ class WeatherTimeline {
         return '🌤️';
     }
 
-    // Render Timelines
-    renderTimelines() {
-        this.currentTrack.innerHTML = '';
-        this.previousTrack.innerHTML = '';
-
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const previousYear = currentYear - 1;
-
-        this.currentYearLabel.textContent = currentYear;
-        this.previousYearLabel.textContent = previousYear;
-
-        // Aggregate data based on view
-        let currentData = this.aggregateData(this.weatherData.current);
-        let previousData = this.aggregateData(this.weatherData.previous);
-
-        // Render current year timeline
-        currentData.forEach((item, index) => {
-            const isToday = this.isToday(item.date);
-            const element = this.createTimelineItem(item, isToday);
-            this.currentTrack.appendChild(element);
-        });
-
-        // Render previous year timeline
-        previousData.forEach(item => {
-            const element = this.createTimelineItem(item, false);
-            this.previousTrack.appendChild(element);
-        });
-
-        // Scroll to the rightmost (most recent) item
-        setTimeout(() => {
-            const currentTimeline = document.getElementById('currentTimeline');
-            currentTimeline.scrollLeft = currentTimeline.scrollWidth;
-        }, 100);
+    // Timeline management
+    openAddTimelineModal() {
+        this.addTimelineModal.style.display = 'flex';
     }
 
-    // Aggregate Data based on view
+    closeAddTimelineModal() {
+        this.addTimelineModal.style.display = 'none';
+    }
+
+    async addTimeline() {
+        const yearsAgo = parseInt(this.yearsAgoInput.value);
+
+        if (yearsAgo < 1 || yearsAgo > 86) {
+            this.showError('Please enter a value between 1 and 86');
+            return;
+        }
+
+        // Check if timeline already exists
+        if (this.timelines.some(t => t.yearsAgo === yearsAgo)) {
+            this.showError(`Timeline for ${yearsAgo} year(s) ago already exists`);
+            return;
+        }
+
+        this.closeAddTimelineModal();
+        this.showLoading();
+
+        try {
+            // Add timeline
+            this.timelines.push({ yearsAgo });
+            this.timelines.sort((a, b) => a.yearsAgo - b.yearsAgo);
+
+            // Load data for new timeline
+            await this.loadAllWeatherData();
+
+            this.hideLoading();
+            this.showSuccess(`Added timeline for ${yearsAgo} year(s) ago`);
+
+        } catch (error) {
+            this.hideLoading();
+            this.showError('Failed to add timeline: ' + error.message);
+        }
+    }
+
+    removeTimeline(yearsAgo) {
+        if (this.timelines.length <= 1) {
+            this.showError('You must have at least one timeline');
+            return;
+        }
+
+        this.timelines = this.timelines.filter(t => t.yearsAgo !== yearsAgo);
+        delete this.weatherDataCache[yearsAgo];
+        this.renderAllTimelines();
+        this.showSuccess(`Removed timeline`);
+    }
+
+    toggleSyncScroll() {
+        this.syncScroll = !this.syncScroll;
+        this.syncScrollBtn.classList.toggle('active', this.syncScroll);
+    }
+
+    // Render all timelines
+    renderAllTimelines() {
+        this.timelinesWrapper.innerHTML = '';
+
+        this.timelines.forEach((timeline) => {
+            const data = this.weatherDataCache[timeline.yearsAgo];
+            if (!data) return;
+
+            const aggregated = this.aggregateData(data);
+            const timelineElement = this.createTimelineSection(timeline, aggregated);
+            this.timelinesWrapper.appendChild(timelineElement);
+        });
+
+        // Setup scroll synchronization
+        if (this.syncScroll) {
+            this.setupScrollSync();
+        }
+    }
+
+    createTimelineSection(timeline, data) {
+        const section = document.createElement('div');
+        section.className = 'timeline-section';
+        section.dataset.yearsAgo = timeline.yearsAgo;
+
+        const year = new Date().getFullYear() - timeline.yearsAgo;
+        const title = timeline.yearsAgo === 0 ? 'Current Weather' :
+                      timeline.yearsAgo === 1 ? 'One Year Ago' :
+                      `${timeline.yearsAgo} Years Ago`;
+
+        section.innerHTML = `
+            <div class="timeline-header">
+                <h2>${title}</h2>
+                <span class="year-label">${year}</span>
+            </div>
+            ${timeline.yearsAgo > 0 ? `
+                <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            ` : ''}
+            <div class="timeline-wrapper">
+                <button class="scroll-btn scroll-left">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"></path>
+                    </svg>
+                </button>
+                <div class="timeline-scroll">
+                    <div class="timeline-track"></div>
+                </div>
+                <button class="scroll-btn scroll-right">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        // Add timeline items
+        const track = section.querySelector('.timeline-track');
+        data.forEach((item, index) => {
+            const isToday = timeline.yearsAgo === 0 && this.isToday(item.date);
+
+            // Add comparison data if not current year
+            let comparisonTemp = null;
+            if (timeline.yearsAgo > 0 && this.weatherDataCache[0]) {
+                const currentData = this.aggregateData(this.weatherDataCache[0]);
+                if (currentData[index]) {
+                    comparisonTemp = currentData[index].temp;
+                }
+            }
+
+            const element = this.createTimelineItem(item, isToday, comparisonTemp);
+            track.appendChild(element);
+        });
+
+        // Setup remove button
+        const removeBtn = section.querySelector('.remove-timeline-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => this.removeTimeline(timeline.yearsAgo));
+        }
+
+        // Setup scroll buttons
+        const scrollContainer = section.querySelector('.timeline-scroll');
+        section.querySelector('.scroll-left').addEventListener('click', () => {
+            scrollContainer.scrollLeft -= 300;
+        });
+        section.querySelector('.scroll-right').addEventListener('click', () => {
+            scrollContainer.scrollLeft += 300;
+        });
+
+        // Scroll to end
+        setTimeout(() => {
+            scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+        }, 100);
+
+        return section;
+    }
+
+    setupScrollSync() {
+        const scrollContainers = document.querySelectorAll('.timeline-scroll');
+
+        scrollContainers.forEach(container => {
+            container.addEventListener('scroll', (e) => {
+                if (!this.syncScroll) return;
+
+                const scrollPercent = e.target.scrollLeft / (e.target.scrollWidth - e.target.clientWidth);
+
+                scrollContainers.forEach(other => {
+                    if (other !== e.target) {
+                        const targetScroll = scrollPercent * (other.scrollWidth - other.clientWidth);
+                        other.scrollLeft = targetScroll;
+                    }
+                });
+            });
+        });
+    }
+
     aggregateData(data) {
         if (this.currentView === 'daily') {
             return data;
@@ -392,7 +783,6 @@ class WeatherTimeline {
         const aggregated = [];
 
         if (this.currentView === 'weekly') {
-            // Group by week
             for (let i = 0; i < data.length; i += 7) {
                 const weekData = data.slice(i, i + 7);
                 if (weekData.length > 0) {
@@ -400,7 +790,6 @@ class WeatherTimeline {
                 }
             }
         } else if (this.currentView === 'monthly') {
-            // Group by month
             const months = {};
             data.forEach(item => {
                 const monthKey = `${item.date.getFullYear()}-${item.date.getMonth()}`;
@@ -419,20 +808,15 @@ class WeatherTimeline {
     }
 
     aggregateWeekData(weekData) {
-        const avgTemp = Math.round(weekData.reduce((sum, item) => sum + item.temp, 0) / weekData.length);
-        const mostCommonCondition = this.getMostCommonCondition(weekData);
-        const firstDate = weekData[0].date;
-        const lastDate = weekData[weekData.length - 1].date;
-
-        // Find the most common weather code for the icon
-        const weatherCodes = weekData.map(item => item.weatherCode);
-        const mostCommonCode = this.getMostCommon(weatherCodes);
+        const avgTemp = weekData.reduce((sum, item) => sum + item.temp, 0) / weekData.length;
+        const mostCommonCode = this.getMostCommon(weekData.map(item => item.weatherCode));
 
         return {
-            date: firstDate,
-            endDate: lastDate,
+            date: weekData[0].date,
+            endDate: weekData[weekData.length - 1].date,
             temp: avgTemp,
-            condition: mostCommonCondition,
+            weatherCode: mostCommonCode,
+            condition: this.getConditionFromCode(mostCommonCode),
             description: this.getDescriptionFromCode(mostCommonCode),
             icon: this.getEmojiFromCode(mostCommonCode),
             isWeek: true
@@ -440,31 +824,18 @@ class WeatherTimeline {
     }
 
     aggregateMonthData(monthData) {
-        const avgTemp = Math.round(monthData.reduce((sum, item) => sum + item.temp, 0) / monthData.length);
-        const mostCommonCondition = this.getMostCommonCondition(monthData);
-        const date = monthData[0].date;
-
-        // Find the most common weather code for the icon
-        const weatherCodes = monthData.map(item => item.weatherCode);
-        const mostCommonCode = this.getMostCommon(weatherCodes);
+        const avgTemp = monthData.reduce((sum, item) => sum + item.temp, 0) / monthData.length;
+        const mostCommonCode = this.getMostCommon(monthData.map(item => item.weatherCode));
 
         return {
-            date: date,
+            date: monthData[0].date,
             temp: avgTemp,
-            condition: mostCommonCondition,
+            weatherCode: mostCommonCode,
+            condition: this.getConditionFromCode(mostCommonCode),
             description: this.getDescriptionFromCode(mostCommonCode),
             icon: this.getEmojiFromCode(mostCommonCode),
             isMonth: true
         };
-    }
-
-    getMostCommonCondition(data) {
-        const counts = {};
-        data.forEach(item => {
-            counts[item.condition] = (counts[item.condition] || 0) + 1;
-        });
-
-        return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
     }
 
     getMostCommon(array) {
@@ -472,12 +843,10 @@ class WeatherTimeline {
         array.forEach(item => {
             counts[item] = (counts[item] || 0) + 1;
         });
-
         return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
     }
 
-    // Create Timeline Item
-    createTimelineItem(data, isToday = false) {
+    createTimelineItem(data, isToday = false, comparisonTemp = null) {
         const item = document.createElement('div');
         item.className = 'timeline-item';
         if (isToday) {
@@ -486,13 +855,29 @@ class WeatherTimeline {
 
         const dateStr = this.formatDate(data.date, data.endDate, data.isWeek, data.isMonth);
         const dayStr = this.formatDay(data.date, data.isWeek, data.isMonth);
+        const temp = this.convertTemp(data.temp);
+        const unit = this.getTempUnit();
+
+        let comparisonHTML = '';
+        if (comparisonTemp !== null) {
+            const currentTemp = this.convertTemp(comparisonTemp);
+            const diff = temp - currentTemp;
+            const diffClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
+            const diffSign = diff > 0 ? '+' : '';
+            comparisonHTML = `
+                <div class="temp-difference ${diffClass}">
+                    ${diffSign}${diff}${unit} vs current
+                </div>
+            `;
+        }
 
         item.innerHTML = `
             <div class="timeline-date">${dateStr}</div>
             <div class="timeline-day">${dayStr}</div>
             <div class="weather-icon">${data.icon}</div>
-            <div class="weather-temp">${data.temp}°C</div>
+            <div class="weather-temp">${temp}${unit}</div>
             <div class="weather-condition">${data.description}</div>
+            ${comparisonHTML}
         `;
 
         return item;
@@ -511,13 +896,9 @@ class WeatherTimeline {
     }
 
     formatDay(date, isWeek, isMonth) {
-        if (isMonth) {
-            return 'Monthly Average';
-        } else if (isWeek) {
-            return 'Weekly Average';
-        } else {
-            return date.toLocaleDateString('en-US', { weekday: 'long' });
-        }
+        if (isMonth) return 'Monthly Average';
+        if (isWeek) return 'Weekly Average';
+        return date.toLocaleDateString('en-US', { weekday: 'long' });
     }
 
     isToday(date) {
@@ -525,14 +906,24 @@ class WeatherTimeline {
         return date.toDateString() === today.toDateString();
     }
 
-    // UI Helper Methods
+    // UI helpers
     updateLocationDisplay() {
         const countryText = this.currentLocation.country ? `, ${this.currentLocation.country}` : '';
         this.locationDisplay.textContent = `${this.currentLocation.name}${countryText}`;
+
+        // Show favorite button
+        this.favoriteBtn.style.display = 'inline-flex';
+
+        // Update favorite button state
+        const isFavorite = this.preferences.favorites.some(
+            f => f.lat === this.currentLocation.lat && f.lon === this.currentLocation.lon
+        );
+        this.favoriteBtn.classList.toggle('active', isFavorite);
     }
 
     showTimelines() {
-        this.timelineContainer.style.display = 'flex';
+        this.timelineControls.style.display = 'block';
+        this.timelinesWrapper.style.display = 'flex';
     }
 
     showLoading() {
@@ -553,23 +944,16 @@ class WeatherTimeline {
     }
 
     showSuccess(message) {
-        // Reuse error message styling for success
-        this.errorMessage.style.background = '#d1fae5';
-        this.errorMessage.style.color = '#065f46';
-        this.errorMessage.style.borderLeftColor = '#10b981';
-        this.errorMessage.textContent = message;
-        this.errorMessage.style.display = 'block';
+        this.successMessage.textContent = message;
+        this.successMessage.style.display = 'block';
         setTimeout(() => {
-            this.errorMessage.style.display = 'none';
-            // Reset to error styling
-            this.errorMessage.style.background = '#fee2e2';
-            this.errorMessage.style.color = '#991b1b';
-            this.errorMessage.style.borderLeftColor = '#ef4444';
+            this.successMessage.style.display = 'none';
         }, 3000);
     }
 }
 
-// Initialize the app
+// Initialize app
+let app;
 document.addEventListener('DOMContentLoaded', () => {
-    new WeatherTimeline();
+    app = new WeatherTimeline();
 });

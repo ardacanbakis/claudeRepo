@@ -1,18 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Timeline - Year Over Year Comparison</title>
     <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Compare weather patterns across multiple years with real historical data">
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>Weather Timeline</h1>
-            <p class="subtitle">Compare weather patterns year over year</p>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Weather Timeline</h1>
+                    <p class="subtitle">Compare weather patterns across years</p>
+                </div>
+                <div class="header-controls">
+                    <button id="settingsBtn" class="btn btn-icon" title="Settings" aria-label="Settings">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m5.66-13a9 9 0 0 1 0 12M6.34 6a9 9 0 0 0 0 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </header>
+
+        <!-- Settings Panel -->
+        <div id="settingsPanel" class="settings-panel" style="display: none;">
+            <div class="settings-content">
+                <div class="settings-header">
+                    <h3>Settings</h3>
+                    <button id="closeSettings" class="btn btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <label>Theme</label>
+                    <div class="btn-group">
+                        <button class="btn btn-view" data-theme="light">Light</button>
+                        <button class="btn btn-view active" data-theme="system">System</button>
+                        <button class="btn btn-view" data-theme="dark">Dark</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <label>Temperature Unit</label>
+                    <div class="btn-group">
+                        <button class="btn btn-view active" data-unit="celsius">°C</button>
+                        <button class="btn btn-view" data-unit="fahrenheit">°F</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Favorite Locations</h4>
+                    <div id="favoritesList" class="favorites-list">
+                        <p class="empty-state">No favorites yet. Search for a city and click the star!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Controls -->
         <div class="controls">
@@ -22,10 +73,11 @@
                         <path d="M12 2v20M2 12h20"></path>
                         <circle cx="12" cy="12" r="7"></circle>
                     </svg>
-                    Use My Location
+                    <span class="btn-text">Use My Location</span>
                 </button>
                 <div class="search-box">
-                    <input type="text" id="citySearch" placeholder="Search for a city..." />
+                    <input type="text" id="citySearch" placeholder="Search for a city..." autocomplete="off" />
+                    <div id="searchAutocomplete" class="search-autocomplete" style="display: none;"></div>
                     <button id="searchBtn" class="btn btn-secondary">Search</button>
                 </div>
             </div>
@@ -42,58 +94,57 @@
 
         <!-- Location Display -->
         <div id="locationDisplay" class="location-display">
-            <span id="currentLocation">Select a location to view weather data</span>
+            <div class="location-info">
+                <span id="currentLocation">Select a location to view weather data</span>
+                <button id="favoriteBtn" class="btn btn-icon favorite-btn" style="display: none;" title="Add to favorites">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Timeline Controls -->
+        <div id="timelineControls" class="timeline-controls" style="display: none;">
+            <div class="timeline-actions">
+                <button id="addTimelineBtn" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14m-7-7h14"></path>
+                    </svg>
+                    Add Comparison Year
+                </button>
+                <button id="syncScrollBtn" class="btn btn-outline active" title="Synchronized scrolling">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span class="btn-text">Sync Scroll</span>
+                </button>
+            </div>
         </div>
 
         <!-- Timeline Container -->
-        <div id="timelineContainer" class="timeline-container">
-            <!-- Current Year Timeline -->
-            <div class="timeline-section">
-                <div class="timeline-header">
-                    <h2>Current Weather</h2>
-                    <span id="currentYearLabel" class="year-label">2026</span>
-                </div>
-                <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left" data-timeline="current">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"></path>
-                        </svg>
-                    </button>
-                    <div class="timeline-scroll" id="currentTimeline">
-                        <div class="timeline-track" id="currentTrack">
-                            <!-- Timeline items will be inserted here -->
-                        </div>
-                    </div>
-                    <button class="scroll-btn scroll-right" data-timeline="current">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+        <div id="timelinesWrapper" class="timelines-wrapper"></div>
 
-            <!-- Previous Year Timeline -->
-            <div class="timeline-section">
-                <div class="timeline-header">
-                    <h2>One Year Ago</h2>
-                    <span id="previousYearLabel" class="year-label">2025</span>
+        <!-- Add Timeline Modal -->
+        <div id="addTimelineModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Comparison Year</h3>
+                    <button id="closeModal" class="btn btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
-                <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left" data-timeline="previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"></path>
-                        </svg>
-                    </button>
-                    <div class="timeline-scroll" id="previousTimeline">
-                        <div class="timeline-track" id="previousTrack">
-                            <!-- Timeline items will be inserted here -->
-                        </div>
-                    </div>
-                    <button class="scroll-btn scroll-right" data-timeline="previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"></path>
-                        </svg>
-                    </button>
+                <div class="modal-body">
+                    <label for="yearsAgo">How many years back?</label>
+                    <input type="number" id="yearsAgo" min="1" max="86" value="1" />
+                    <p class="help-text">Choose between 1 and 86 years (data available from 1940)</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelAddTimeline" class="btn btn-secondary">Cancel</button>
+                    <button id="confirmAddTimeline" class="btn btn-primary">Add Timeline</button>
                 </div>
             </div>
         </div>
@@ -106,6 +157,9 @@
 
         <!-- Error Message -->
         <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="success-message" style="display: none;"></div>
     </div>
 
     <script src="app.js"></script>
