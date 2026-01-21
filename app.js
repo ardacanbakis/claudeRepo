@@ -539,7 +539,7 @@ class WeatherTimeline {
         if (settingsTitle) settingsTitle.textContent = this.t('settings');
 
         const themeLabel = document.querySelector('.settings-section label');
-        if (themeLabel && themeLabel.textContent.includes('Theme') || themeLabel.textContent.includes('Tema')) {
+        if (themeLabel && (themeLabel.textContent.includes('Theme') || themeLabel.textContent.includes('Tema'))) {
             themeLabel.textContent = this.t('theme');
         }
 
