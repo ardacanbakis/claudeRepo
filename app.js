@@ -1,7 +1,6 @@
-// Weather Timeline App
+// Weather Timeline App with Open-Meteo API
 class WeatherTimeline {
     constructor() {
-        this.apiKey = localStorage.getItem('openweather_api_key') || '';
         this.currentLocation = null;
         this.currentView = 'daily'; // daily, weekly, monthly
         this.weatherData = {
@@ -15,20 +14,9 @@ class WeatherTimeline {
     init() {
         this.setupElements();
         this.setupEventListeners();
-
-        if (this.apiKey) {
-            this.hideApiKeySection();
-        } else {
-            this.showApiKeySection();
-        }
     }
 
     setupElements() {
-        // API Key elements
-        this.apiKeySection = document.getElementById('apiKeySection');
-        this.apiKeyInput = document.getElementById('apiKeyInput');
-        this.saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-
         // Control elements
         this.geolocationBtn = document.getElementById('geolocationBtn');
         this.citySearch = document.getElementById('citySearch');
@@ -52,12 +40,6 @@ class WeatherTimeline {
     }
 
     setupEventListeners() {
-        // API Key
-        this.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
-        this.apiKeyInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.saveApiKey();
-        });
-
         // Location
         this.geolocationBtn.addEventListener('click', () => this.useGeolocation());
         this.searchBtn.addEventListener('click', () => this.searchCity());
@@ -95,29 +77,6 @@ class WeatherTimeline {
         });
     }
 
-    // API Key Management
-    saveApiKey() {
-        const apiKey = this.apiKeyInput.value.trim();
-        if (!apiKey) {
-            this.showError('Please enter a valid API key');
-            return;
-        }
-
-        this.apiKey = apiKey;
-        localStorage.setItem('openweather_api_key', apiKey);
-        this.hideApiKeySection();
-        this.showSuccess('API key saved successfully!');
-    }
-
-    showApiKeySection() {
-        this.apiKeySection.style.display = 'block';
-        this.timelineContainer.style.display = 'none';
-    }
-
-    hideApiKeySection() {
-        this.apiKeySection.style.display = 'none';
-    }
-
     // Geolocation
     useGeolocation() {
         if (!navigator.geolocation) {
@@ -139,7 +98,7 @@ class WeatherTimeline {
         );
     }
 
-    // City Search
+    // City Search using Open-Meteo Geocoding API
     async searchCity() {
         const cityName = this.citySearch.value.trim();
         if (!cityName) {
@@ -150,7 +109,7 @@ class WeatherTimeline {
         this.showLoading();
 
         try {
-            const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${this.apiKey}`;
+            const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -159,12 +118,12 @@ class WeatherTimeline {
 
             const data = await response.json();
 
-            if (data.length === 0) {
-                throw new Error('City not found');
+            if (!data.results || data.results.length === 0) {
+                throw new Error('City not found. Try including the country (e.g., "London, UK")');
             }
 
-            const location = data[0];
-            this.loadWeatherData(location.lat, location.lon, location.name, location.country);
+            const location = data.results[0];
+            this.loadWeatherData(location.latitude, location.longitude, location.name, location.country);
 
         } catch (error) {
             this.hideLoading();
@@ -208,22 +167,42 @@ class WeatherTimeline {
         }
     }
 
-    // Reverse Geocoding
+    // Reverse Geocoding using Open-Meteo
     async reverseGeocode(lat, lon) {
-        const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${this.apiKey}`;
-        const response = await fetch(url);
+        // Open-Meteo doesn't have reverse geocoding, so we'll use a simple approach
+        // We'll search for nearby locations and pick the closest one
+        const url = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`;
 
-        if (!response.ok) {
-            throw new Error('Failed to get location name');
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                // If reverse geocoding fails, just use coordinates
+                return {
+                    name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
+                    country: ''
+                };
+            }
+
+            const data = await response.json();
+            if (data.results && data.results.length > 0) {
+                return {
+                    name: data.results[0].name,
+                    country: data.results[0].country || ''
+                };
+            }
+        } catch (error) {
+            console.error('Reverse geocoding failed:', error);
         }
 
-        const data = await response.json();
-        return data[0];
+        // Fallback to coordinates
+        return {
+            name: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`,
+            country: ''
+        };
     }
 
-    // Fetch Weather History
+    // Fetch Weather History using Open-Meteo Archive API
     async fetchWeatherHistory(lat, lon, endDate) {
-        const data = [];
         const now = new Date();
         const isCurrentYear = endDate.getFullYear() === now.getFullYear();
 
@@ -243,133 +222,129 @@ class WeatherTimeline {
                 numDays = 30;
         }
 
-        // For current year, don't fetch future dates
-        if (isCurrentYear) {
-            const today = new Date();
-            const daysSinceStartOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
-            numDays = Math.min(numDays, daysSinceStartOfYear);
+        // Calculate start and end dates
+        let end = new Date(endDate);
+        if (isCurrentYear && end > now) {
+            end = new Date(now);
         }
 
-        // Fetch data points
-        for (let i = 0; i < numDays; i++) {
-            const date = new Date(endDate);
-            date.setDate(date.getDate() - i);
+        let start = new Date(end);
+        start.setDate(start.getDate() - numDays);
 
-            // Skip future dates
-            if (date > now) continue;
+        // Format dates for API (YYYY-MM-DD)
+        const startDate = this.formatDateForAPI(start);
+        const endDateStr = this.formatDateForAPI(end);
 
-            try {
-                const weatherPoint = await this.fetchWeatherForDate(lat, lon, date);
-                data.push(weatherPoint);
-            } catch (error) {
-                console.error(`Failed to fetch weather for ${date}:`, error);
-            }
+        // Fetch weather data from Open-Meteo
+        const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDateStr}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&timezone=auto`;
 
-            // Add delay to avoid rate limiting
-            await this.delay(100);
-        }
-
-        return data.reverse(); // Oldest to newest
-    }
-
-    // Fetch Weather for Specific Date
-    async fetchWeatherForDate(lat, lon, date) {
-        const timestamp = Math.floor(date.getTime() / 1000);
-
-        // For recent dates (within 5 days), use current weather or forecast
-        const now = new Date();
-        const daysDiff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-        if (daysDiff < 0) {
-            // Future date - shouldn't happen, but handle it
-            throw new Error('Cannot fetch future weather');
-        } else if (daysDiff === 0) {
-            // Today - use current weather
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.apiKey}`;
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch current weather');
-            }
-
-            const data = await response.json();
-            return this.formatWeatherData(data, date);
-        } else {
-            // Historical data - OpenWeatherMap historical API requires subscription
-            // For demo purposes, we'll simulate historical data based on current weather with some variation
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.apiKey}`;
+        try {
             const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error('Failed to fetch weather data');
             }
 
-            const currentData = await response.json();
-            return this.simulateHistoricalData(currentData, date, daysDiff);
+            const data = await response.json();
+
+            // Transform the data into our format
+            const weatherData = [];
+            for (let i = 0; i < data.daily.time.length; i++) {
+                const date = new Date(data.daily.time[i]);
+                weatherData.push({
+                    date: date,
+                    temp: Math.round(data.daily.temperature_2m_mean[i]),
+                    tempMax: Math.round(data.daily.temperature_2m_max[i]),
+                    tempMin: Math.round(data.daily.temperature_2m_min[i]),
+                    weatherCode: data.daily.weathercode[i],
+                    precipitation: data.daily.precipitation_sum[i],
+                    condition: this.getConditionFromCode(data.daily.weathercode[i]),
+                    description: this.getDescriptionFromCode(data.daily.weathercode[i]),
+                    icon: this.getEmojiFromCode(data.daily.weathercode[i])
+                });
+            }
+
+            return weatherData;
+
+        } catch (error) {
+            console.error('Failed to fetch historical weather:', error);
+            throw error;
         }
     }
 
-    // Format Weather Data
-    formatWeatherData(data, date) {
-        return {
-            date: date,
-            temp: Math.round(data.main.temp),
-            condition: data.weather[0].main,
-            description: data.weather[0].description,
-            icon: this.getWeatherEmoji(data.weather[0].main),
-            humidity: data.main.humidity,
-            windSpeed: data.wind.speed
-        };
+    // Format date for API (YYYY-MM-DD)
+    formatDateForAPI(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
-    // Simulate Historical Data (for demo purposes)
-    simulateHistoricalData(currentData, date, daysDiff) {
-        // Add some random variation to simulate historical data
-        const tempVariation = (Math.random() - 0.5) * 10;
-        const temp = Math.round(currentData.main.temp + tempVariation);
-
-        // Randomly vary weather conditions
-        const conditions = ['Clear', 'Clouds', 'Rain', 'Snow', 'Drizzle'];
-        const randomCondition = Math.random() < 0.7 ? currentData.weather[0].main : conditions[Math.floor(Math.random() * conditions.length)];
-
-        return {
-            date: date,
-            temp: temp,
-            condition: randomCondition,
-            description: this.getConditionDescription(randomCondition),
-            icon: this.getWeatherEmoji(randomCondition),
-            humidity: Math.round(currentData.main.humidity + (Math.random() - 0.5) * 20),
-            windSpeed: Math.round((currentData.wind.speed + (Math.random() - 0.5) * 2) * 10) / 10
-        };
+    // Map WMO Weather codes to conditions
+    // https://open-meteo.com/en/docs
+    getConditionFromCode(code) {
+        if (code === 0) return 'Clear';
+        if (code >= 1 && code <= 3) return 'Clouds';
+        if (code >= 45 && code <= 48) return 'Fog';
+        if (code >= 51 && code <= 55) return 'Drizzle';
+        if (code >= 56 && code <= 57) return 'Drizzle';
+        if (code >= 61 && code <= 65) return 'Rain';
+        if (code >= 66 && code <= 67) return 'Rain';
+        if (code >= 71 && code <= 75) return 'Snow';
+        if (code >= 77 && code <= 77) return 'Snow';
+        if (code >= 80 && code <= 82) return 'Rain';
+        if (code >= 85 && code <= 86) return 'Snow';
+        if (code >= 95 && code <= 99) return 'Thunderstorm';
+        return 'Unknown';
     }
 
-    getConditionDescription(condition) {
+    getDescriptionFromCode(code) {
         const descriptions = {
-            'Clear': 'clear sky',
-            'Clouds': 'scattered clouds',
-            'Rain': 'moderate rain',
-            'Snow': 'light snow',
-            'Drizzle': 'light drizzle',
-            'Thunderstorm': 'thunderstorm',
-            'Mist': 'mist'
+            0: 'clear sky',
+            1: 'mainly clear',
+            2: 'partly cloudy',
+            3: 'overcast',
+            45: 'foggy',
+            48: 'depositing rime fog',
+            51: 'light drizzle',
+            53: 'moderate drizzle',
+            55: 'dense drizzle',
+            56: 'light freezing drizzle',
+            57: 'dense freezing drizzle',
+            61: 'slight rain',
+            63: 'moderate rain',
+            65: 'heavy rain',
+            66: 'light freezing rain',
+            67: 'heavy freezing rain',
+            71: 'slight snow',
+            73: 'moderate snow',
+            75: 'heavy snow',
+            77: 'snow grains',
+            80: 'slight rain showers',
+            81: 'moderate rain showers',
+            82: 'violent rain showers',
+            85: 'slight snow showers',
+            86: 'heavy snow showers',
+            95: 'thunderstorm',
+            96: 'thunderstorm with slight hail',
+            99: 'thunderstorm with heavy hail'
         };
-        return descriptions[condition] || 'unknown';
+        return descriptions[code] || 'unknown';
     }
 
-    // Get Weather Emoji
-    getWeatherEmoji(condition) {
-        const emojiMap = {
-            'Clear': '☀️',
-            'Clouds': '☁️',
-            'Rain': '🌧️',
-            'Drizzle': '🌦️',
-            'Thunderstorm': '⛈️',
-            'Snow': '❄️',
-            'Mist': '🌫️',
-            'Fog': '🌫️',
-            'Haze': '🌫️'
-        };
-        return emojiMap[condition] || '🌤️';
+    getEmojiFromCode(code) {
+        if (code === 0) return '☀️';
+        if (code >= 1 && code <= 2) return '🌤️';
+        if (code === 3) return '☁️';
+        if (code >= 45 && code <= 48) return '🌫️';
+        if (code >= 51 && code <= 57) return '🌦️';
+        if (code >= 61 && code <= 65) return '🌧️';
+        if (code >= 66 && code <= 67) return '🌧️';
+        if (code >= 71 && code <= 77) return '❄️';
+        if (code >= 80 && code <= 82) return '🌧️';
+        if (code >= 85 && code <= 86) return '❄️';
+        if (code >= 95 && code <= 99) return '⛈️';
+        return '🌤️';
     }
 
     // Render Timelines
@@ -449,13 +424,17 @@ class WeatherTimeline {
         const firstDate = weekData[0].date;
         const lastDate = weekData[weekData.length - 1].date;
 
+        // Find the most common weather code for the icon
+        const weatherCodes = weekData.map(item => item.weatherCode);
+        const mostCommonCode = this.getMostCommon(weatherCodes);
+
         return {
             date: firstDate,
             endDate: lastDate,
             temp: avgTemp,
             condition: mostCommonCondition,
-            description: this.getConditionDescription(mostCommonCondition),
-            icon: this.getWeatherEmoji(mostCommonCondition),
+            description: this.getDescriptionFromCode(mostCommonCode),
+            icon: this.getEmojiFromCode(mostCommonCode),
             isWeek: true
         };
     }
@@ -465,12 +444,16 @@ class WeatherTimeline {
         const mostCommonCondition = this.getMostCommonCondition(monthData);
         const date = monthData[0].date;
 
+        // Find the most common weather code for the icon
+        const weatherCodes = monthData.map(item => item.weatherCode);
+        const mostCommonCode = this.getMostCommon(weatherCodes);
+
         return {
             date: date,
             temp: avgTemp,
             condition: mostCommonCondition,
-            description: this.getConditionDescription(mostCommonCondition),
-            icon: this.getWeatherEmoji(mostCommonCondition),
+            description: this.getDescriptionFromCode(mostCommonCode),
+            icon: this.getEmojiFromCode(mostCommonCode),
             isMonth: true
         };
     }
@@ -479,6 +462,15 @@ class WeatherTimeline {
         const counts = {};
         data.forEach(item => {
             counts[item.condition] = (counts[item.condition] || 0) + 1;
+        });
+
+        return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    }
+
+    getMostCommon(array) {
+        const counts = {};
+        array.forEach(item => {
+            counts[item] = (counts[item] || 0) + 1;
         });
 
         return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
@@ -535,7 +527,8 @@ class WeatherTimeline {
 
     // UI Helper Methods
     updateLocationDisplay() {
-        this.locationDisplay.textContent = `${this.currentLocation.name}, ${this.currentLocation.country}`;
+        const countryText = this.currentLocation.country ? `, ${this.currentLocation.country}` : '';
+        this.locationDisplay.textContent = `${this.currentLocation.name}${countryText}`;
     }
 
     showTimelines() {
@@ -573,10 +566,6 @@ class WeatherTimeline {
             this.errorMessage.style.color = '#991b1b';
             this.errorMessage.style.borderLeftColor = '#ef4444';
         }, 3000);
-    }
-
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
