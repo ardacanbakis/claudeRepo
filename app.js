@@ -336,12 +336,14 @@ class WeatherTimeline {
         this.footerFavoritesBtn = document.getElementById('footerFavoritesBtn');
         this.footerFavoritesDropdown = document.getElementById('footerFavoritesDropdown');
         this.footerFavoritesDropdownList = document.getElementById('footerFavoritesDropdownList');
+        this.footerShareBtn = document.getElementById('footerShareBtn');
         this.footerSettingsBtn = document.getElementById('footerSettingsBtn');
         this.footerThemeToggleBtn = document.getElementById('footerThemeToggleBtn');
         this.footerLogo = document.querySelector('.footer-logo');
 
         // Settings
         this.settingsPanel = document.getElementById('settingsPanel');
+        this.shareBtn = document.getElementById('shareBtn');
         this.closeSettingsBtn = document.getElementById('closeSettings');
         this.favoritesList = document.getElementById('favoritesList');
         this.favoritesHeader = document.getElementById('favoritesHeader');
@@ -351,7 +353,6 @@ class WeatherTimeline {
         // Location controls
         this.toggleControlsBtn = document.getElementById('toggleControlsBtn');
         this.controlsContent = document.getElementById('controlsContent');
-        this.favoritesBoxes = document.getElementById('favoritesBoxes');
         this.viewBtns = document.querySelectorAll('.btn-view[data-view]');
 
         // Display
@@ -421,6 +422,10 @@ class WeatherTimeline {
         this.footerLogo.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // Share buttons
+        this.shareBtn.addEventListener('click', () => this.shareApp());
+        this.footerShareBtn.addEventListener('click', () => this.shareApp());
 
         // Navbar - Search
         this.navbarSearch.addEventListener('input', (e) => this.handleNavbarSearchInput(e.target.value));
@@ -811,6 +816,31 @@ class WeatherTimeline {
         this.settingsPanel.style.display = 'none';
     }
 
+    async shareApp() {
+        const shareData = {
+            title: 'Weather Timeline',
+            text: 'Compare weather patterns across multiple years!',
+            url: window.location.href
+        };
+
+        try {
+            // Check if Web Share API is supported (typically mobile devices)
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback for desktop: copy to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+                this.showSuccess('Link copied to clipboard!');
+            }
+        } catch (error) {
+            // User cancelled share or clipboard write failed
+            if (error.name !== 'AbortError') {
+                console.error('Share failed:', error);
+                this.showError('Failed to share. Please copy the URL manually.');
+            }
+        }
+    }
+
     updateWelcomeMessageTranslations() {
         const welcomeTitle = document.getElementById('welcomeTitle');
         const welcomeSubtitle = document.getElementById('welcomeSubtitle');
@@ -914,7 +944,6 @@ class WeatherTimeline {
         // Render to settings panel (list view)
         if (this.preferences.favorites.length === 0) {
             this.favoritesList.innerHTML = '<p class="empty-state">No favorites yet. Search for a city and click the star!</p>';
-            this.favoritesBoxes.innerHTML = '<p class="empty-favorites">No favorites yet. Search and star locations!</p>';
             this.navFavoritesDropdownList.innerHTML = '<p class="empty-state">No favorites yet</p>';
             this.footerFavoritesDropdownList.innerHTML = '<p class="empty-state">No favorites yet</p>';
             return;
@@ -929,19 +958,6 @@ class WeatherTimeline {
                 </div>
                 <button class="btn btn-icon btn-danger remove-favorite-btn" title="Remove">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6L6 18M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        `).join('');
-
-        // Favorites boxes (quick access)
-        this.favoritesBoxes.innerHTML = this.preferences.favorites.map(fav => `
-            <div class="favorite-box" data-lat="${fav.lat}" data-lon="${fav.lon}" data-name="${fav.name}" data-country="${fav.country}">
-                <span class="favorite-name">${fav.name}</span>
-                <span class="favorite-country">${fav.country}</span>
-                <button class="remove-favorite-box-btn" title="Remove">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"></path>
                     </svg>
                 </button>
@@ -963,21 +979,6 @@ class WeatherTimeline {
             });
         });
 
-        // Add click handlers to favorite boxes
-        document.querySelectorAll('.favorite-box').forEach(box => {
-            const lat = parseFloat(box.dataset.lat);
-            const lon = parseFloat(box.dataset.lon);
-            const name = box.dataset.name;
-            const country = box.dataset.country;
-
-            box.addEventListener('click', (e) => {
-                if (!e.target.closest('.remove-favorite-box-btn')) {
-                    this.loadWeatherData(lat, lon, name, country);
-                    this.collapseControls();
-                }
-            });
-        });
-
         // Add remove button handlers (settings panel)
         document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -985,17 +986,6 @@ class WeatherTimeline {
                 const item = e.currentTarget.closest('.favorite-item');
                 const lat = parseFloat(item.dataset.lat);
                 const lon = parseFloat(item.dataset.lon);
-                this.removeFavorite(lat, lon);
-            });
-        });
-
-        // Add remove button handlers (boxes)
-        document.querySelectorAll('.remove-favorite-box-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const box = e.currentTarget.closest('.favorite-box');
-                const lat = parseFloat(box.dataset.lat);
-                const lon = parseFloat(box.dataset.lon);
                 this.removeFavorite(lat, lon);
             });
         });
@@ -1222,6 +1212,7 @@ class WeatherTimeline {
         this.favoriteBtn.style.display = 'none';
         this.hideNavbarAutocomplete();
         this.currentLocation = null;
+        this.timelines = [{ yearsAgo: 0 }, { yearsAgo: 1 }]; // Reset to default timelines
         this.welcomeMessage.style.display = 'flex';
         this.timelineControls.style.display = 'none';
         this.timelinesWrapper.style.display = 'none';

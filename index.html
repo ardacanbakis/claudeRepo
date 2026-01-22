@@ -114,11 +114,20 @@
             <div class="modal-content settings-modal-content">
                 <div class="modal-header">
                     <h3>Settings</h3>
-                    <button id="closeSettings" class="btn btn-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12"></path>
-                        </svg>
-                    </button>
+                    <div class="modal-header-actions">
+                        <button id="shareBtn" class="btn btn-icon" title="Share">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                                <polyline points="16 6 12 2 8 6"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                        <button id="closeSettings" class="btn btn-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="modal-body settings-body">
@@ -205,33 +214,22 @@
             </div>
         </div>
 
-        <!-- View and Favourites (Above Timelines) -->
+        <!-- View Controls (Above Timelines) -->
         <div id="timelineControls" class="timeline-controls" style="display: none;">
             <div id="toggleControlsBtn" class="controls-header">
-                <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="collapse-icon rotated" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 9l-7 7-7-7"></path>
                 </svg>
             </div>
 
-            <div id="controlsContent" class="controls-content collapsed">
-                <!-- View + Favorites -->
-                <div class="controls-split">
-                    <!-- Left: View Controls (35%) -->
-                    <div class="view-controls">
-                        <label>View:</label>
-                        <div class="btn-group">
-                            <button class="btn btn-view active" data-view="daily">Daily</button>
-                            <button class="btn btn-view" data-view="weekly">Weekly</button>
-                            <button class="btn btn-view" data-view="monthly">Monthly</button>
-                        </div>
-                    </div>
-
-                    <!-- Right: Favorites (65%) -->
-                    <div class="favorites-section">
-                        <label>Quick Access:</label>
-                        <div id="favoritesBoxes" class="favorites-boxes">
-                            <p class="empty-favorites">No favorites yet. Search and star locations!</p>
-                        </div>
+            <div id="controlsContent" class="controls-content">
+                <!-- View Controls -->
+                <div class="view-controls-centered">
+                    <label>View:</label>
+                    <div class="btn-group">
+                        <button class="btn btn-view active" data-view="daily">Daily</button>
+                        <button class="btn btn-view" data-view="weekly">Weekly</button>
+                        <button class="btn btn-view" data-view="monthly">Monthly</button>
                     </div>
                 </div>
             </div>
@@ -350,7 +348,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <!-- Left: Favorites, Settings and Theme -->
+            <!-- Left: Favorites, Share, Settings and Theme -->
             <div class="footer-left">
                 <div class="favorites-icon-container">
                     <button id="footerFavoritesBtn" class="btn btn-icon footer-icon" title="Favorites">
@@ -366,10 +364,18 @@
                     </div>
                 </div>
 
-                <button id="footerSettingsBtn" class="btn btn-icon footer-icon" title="Settings" aria-label="Settings">
+                <button id="footerShareBtn" class="btn btn-icon footer-icon" title="Share" aria-label="Share">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 2v2m0 16v2M6.34 6.34l-1.42-1.42M19.08 19.08l-1.42-1.42M2 12h2m16 0h2M6.34 17.66l-1.42 1.42M19.08 4.92l-1.42 1.42"></path>
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                </button>
+
+                <button id="footerSettingsBtn" class="btn btn-icon footer-icon" title="Settings" aria-label="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/>
+                        <circle cx="12" cy="12" r="3"/>
                     </svg>
                 </button>
 
