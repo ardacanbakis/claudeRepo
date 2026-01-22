@@ -79,27 +79,51 @@
 
         <!-- Controls -->
         <div class="controls">
-            <div class="location-controls">
-                <button id="geolocationBtn" class="btn btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20M2 12h20"></path>
-                        <circle cx="12" cy="12" r="7"></circle>
+            <div class="controls-header">
+                <h3>Search & Favorites</h3>
+                <button id="toggleControlsBtn" class="btn btn-icon" title="Collapse/Expand">
+                    <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 9l-7 7-7-7"></path>
                     </svg>
-                    <span class="btn-text">Use My Location</span>
                 </button>
-                <div class="search-box">
-                    <input type="text" id="citySearch" placeholder="Search for a city..." autocomplete="off" />
-                    <div id="searchAutocomplete" class="search-autocomplete" style="display: none;"></div>
-                    <button id="searchBtn" class="btn btn-secondary">Search</button>
-                </div>
             </div>
 
-            <div class="view-controls">
-                <label>View:</label>
-                <div class="btn-group">
-                    <button class="btn btn-view active" data-view="daily">Daily</button>
-                    <button class="btn btn-view" data-view="weekly">Weekly</button>
-                    <button class="btn btn-view" data-view="monthly">Monthly</button>
+            <div id="controlsContent" class="controls-content">
+                <div class="controls-split">
+                    <!-- Left: Search Controls -->
+                    <div class="controls-left">
+                        <div class="location-controls">
+                            <button id="geolocationBtn" class="btn btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20M2 12h20"></path>
+                                    <circle cx="12" cy="12" r="7"></circle>
+                                </svg>
+                                <span class="btn-text">Use My Location</span>
+                            </button>
+                            <div class="search-box">
+                                <input type="text" id="citySearch" placeholder="Search for a city..." autocomplete="off" />
+                                <div id="searchAutocomplete" class="search-autocomplete" style="display: none;"></div>
+                                <button id="searchBtn" class="btn btn-secondary">Search</button>
+                            </div>
+                        </div>
+
+                        <div class="view-controls">
+                            <label>View:</label>
+                            <div class="btn-group">
+                                <button class="btn btn-view active" data-view="daily">Daily</button>
+                                <button class="btn btn-view" data-view="weekly">Weekly</button>
+                                <button class="btn btn-view" data-view="monthly">Monthly</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Favorites -->
+                    <div class="controls-right">
+                        <label>Quick Access:</label>
+                        <div id="favoritesBoxes" class="favorites-boxes">
+                            <p class="empty-favorites">No favorites yet. Search and star locations!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

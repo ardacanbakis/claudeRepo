@@ -85,6 +85,9 @@ class WeatherTimeline {
         this.favoritesHeader = document.getElementById('favoritesHeader');
 
         // Location controls
+        this.toggleControlsBtn = document.getElementById('toggleControlsBtn');
+        this.controlsContent = document.getElementById('controlsContent');
+        this.favoritesBoxes = document.getElementById('favoritesBoxes');
         this.geolocationBtn = document.getElementById('geolocationBtn');
         this.citySearch = document.getElementById('citySearch');
         this.searchBtn = document.getElementById('searchBtn');
@@ -141,6 +144,9 @@ class WeatherTimeline {
         // Help
         this.helpBtn.addEventListener('click', () => this.openKeyboardHelp());
         this.closeKeyboardHelp.addEventListener('click', () => this.closeKeyboardHelpModal());
+
+        // Toggle controls
+        this.toggleControlsBtn.addEventListener('click', () => this.toggleControls());
 
         // Collapsable favorites
         this.favoritesHeader.addEventListener('click', (e) => {
@@ -394,6 +400,18 @@ class WeatherTimeline {
         icon.classList.toggle('rotated');
     }
 
+    toggleControls() {
+        this.controlsContent.classList.toggle('collapsed');
+        const icon = this.toggleControlsBtn.querySelector('.collapse-icon');
+        icon.classList.toggle('rotated');
+    }
+
+    collapseControls() {
+        this.controlsContent.classList.add('collapsed');
+        const icon = this.toggleControlsBtn.querySelector('.collapse-icon');
+        icon.classList.add('rotated');
+    }
+
     // Favorites management
     toggleFavorite() {
         if (!this.currentLocation) return;
@@ -426,11 +444,14 @@ class WeatherTimeline {
     }
 
     renderFavorites() {
+        // Render to settings panel (list view)
         if (this.preferences.favorites.length === 0) {
             this.favoritesList.innerHTML = '<p class="empty-state">No favorites yet. Search for a city and click the star!</p>';
+            this.favoritesBoxes.innerHTML = '<p class="empty-favorites">No favorites yet. Search and star locations!</p>';
             return;
         }
 
+        // Settings panel list
         this.favoritesList.innerHTML = this.preferences.favorites.map(fav => `
             <div class="favorite-item" data-lat="${fav.lat}" data-lon="${fav.lon}" data-name="${fav.name}" data-country="${fav.country}">
                 <div class="favorite-item-info">
@@ -445,7 +466,20 @@ class WeatherTimeline {
             </div>
         `).join('');
 
-        // Add click handlers to favorites
+        // Favorites boxes (quick access)
+        this.favoritesBoxes.innerHTML = this.preferences.favorites.map(fav => `
+            <div class="favorite-box" data-lat="${fav.lat}" data-lon="${fav.lon}" data-name="${fav.name}" data-country="${fav.country}">
+                <span class="favorite-name">${fav.name}</span>
+                <span class="favorite-country">${fav.country}</span>
+                <button class="remove-favorite-box-btn" title="Remove">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `).join('');
+
+        // Add click handlers to favorites in settings panel
         document.querySelectorAll('.favorite-item').forEach(item => {
             const lat = parseFloat(item.dataset.lat);
             const lon = parseFloat(item.dataset.lon);
@@ -460,13 +494,39 @@ class WeatherTimeline {
             });
         });
 
-        // Add remove button handlers
+        // Add click handlers to favorite boxes
+        document.querySelectorAll('.favorite-box').forEach(box => {
+            const lat = parseFloat(box.dataset.lat);
+            const lon = parseFloat(box.dataset.lon);
+            const name = box.dataset.name;
+            const country = box.dataset.country;
+
+            box.addEventListener('click', (e) => {
+                if (!e.target.closest('.remove-favorite-box-btn')) {
+                    this.loadWeatherData(lat, lon, name, country);
+                    this.collapseControls();
+                }
+            });
+        });
+
+        // Add remove button handlers (settings panel)
         document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const item = e.currentTarget.closest('.favorite-item');
                 const lat = parseFloat(item.dataset.lat);
                 const lon = parseFloat(item.dataset.lon);
+                this.removeFavorite(lat, lon);
+            });
+        });
+
+        // Add remove button handlers (boxes)
+        document.querySelectorAll('.remove-favorite-box-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const box = e.currentTarget.closest('.favorite-box');
+                const lat = parseFloat(box.dataset.lat);
+                const lon = parseFloat(box.dataset.lon);
                 this.removeFavorite(lat, lon);
             });
         });
@@ -701,6 +761,7 @@ class WeatherTimeline {
     // Load weather data for all timelines
     async loadWeatherData(lat, lon, cityName = null, country = null) {
         this.showLoading();
+        this.collapseControls();
 
         try {
             // If city name not provided, try to get it from coordinates
