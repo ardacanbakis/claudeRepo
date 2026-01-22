@@ -1802,10 +1802,6 @@ class WeatherTimeline {
         const unifiedContainer = document.createElement('div');
         unifiedContainer.className = 'unified-timeline-container';
 
-        // Create headers section (fixed, non-scrolling)
-        const headersSection = document.createElement('div');
-        headersSection.className = 'timeline-headers-section';
-
         // Create scroll controls wrapper
         const scrollControlsWrapper = document.createElement('div');
         scrollControlsWrapper.className = 'unified-scroll-wrapper';
@@ -1832,24 +1828,19 @@ class WeatherTimeline {
             </svg>
         `;
 
-        // Render each timeline as a row
+        // Render each timeline as a complete row (header + track)
         this.timelines.forEach((timeline) => {
             const data = this.weatherDataCache[timeline.yearsAgo];
             if (!data) return;
 
             const aggregated = this.aggregateData(data);
 
-            // Create header (non-scrolling)
-            const headerRow = this.createTimelineHeader(timeline);
-            headersSection.appendChild(headerRow);
-
-            // Create track (scrolling)
-            const track = this.createTimelineTrack(timeline, aggregated);
-            unifiedScroll.appendChild(track);
+            // Create complete timeline row with header above track
+            const timelineRow = this.createCompleteTimelineRow(timeline, aggregated);
+            unifiedScroll.appendChild(timelineRow);
         });
 
         // Assemble unified structure
-        unifiedContainer.appendChild(headersSection);
         scrollControlsWrapper.appendChild(leftButton);
         scrollControlsWrapper.appendChild(unifiedScroll);
         scrollControlsWrapper.appendChild(rightButton);
@@ -1884,15 +1875,20 @@ class WeatherTimeline {
         }, 300);
     }
 
-    createTimelineHeader(timeline) {
+    createCompleteTimelineRow(timeline, data) {
         const year = new Date().getFullYear() - timeline.yearsAgo;
         const title = timeline.yearsAgo === 0 ? this.t('currentWeather') :
                       timeline.yearsAgo === 1 ? this.t('oneYearAgo') :
                       `${timeline.yearsAgo} ${this.t('yearsAgo')}`;
 
+        // Create container for header + track
+        const rowContainer = document.createElement('div');
+        rowContainer.className = 'timeline-row-container';
+        rowContainer.dataset.yearsAgo = timeline.yearsAgo;
+
+        // Create header (above track)
         const header = document.createElement('div');
-        header.className = 'timeline-fixed-header';
-        header.dataset.yearsAgo = timeline.yearsAgo;
+        header.className = 'timeline-row-header';
 
         if (timeline.yearsAgo === 0) {
             header.innerHTML = `
@@ -1920,14 +1916,9 @@ class WeatherTimeline {
             }
         }
 
-        return header;
-    }
-
-    createTimelineTrack(timeline, data) {
         // Create track for items
         const track = document.createElement('div');
         track.className = 'timeline-track';
-        track.dataset.yearsAgo = timeline.yearsAgo;
 
         // Add timeline items
         data.forEach((item, index) => {
@@ -1946,7 +1937,10 @@ class WeatherTimeline {
             track.appendChild(element);
         });
 
-        return track;
+        rowContainer.appendChild(header);
+        rowContainer.appendChild(track);
+
+        return rowContainer;
     }
 
     // Scroll sync no longer needed with unified container

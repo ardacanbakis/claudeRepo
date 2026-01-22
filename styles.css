@@ -1222,31 +1222,6 @@ body {
     box-shadow: var(--shadow-md);
 }
 
-/* Fixed Headers Section (non-scrolling) */
-.timeline-headers-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.timeline-fixed-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.timeline-fixed-header h2 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex: 1;
-}
-
 .unified-scroll-wrapper {
     position: relative;
     display: flex;
@@ -1261,7 +1236,7 @@ body {
     scroll-behavior: smooth;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
     padding: 1rem 0;
 }
 
@@ -1293,6 +1268,34 @@ body {
 .scroll-btn-large svg {
     width: 32px;
     height: 32px;
+}
+
+/* Timeline Row Container (header + track) */
+.timeline-row-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: max-content;
+}
+
+/* Timeline Row Header (above track) */
+.timeline-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+    min-width: 100%;
+}
+
+.timeline-row-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    margin: 0;
 }
 
 /* Timeline Track */
