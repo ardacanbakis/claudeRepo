@@ -858,6 +858,52 @@ body {
     fill: currentColor;
 }
 
+/* Welcome Message */
+.welcome-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    min-height: 400px;
+}
+
+.welcome-message h2 {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.welcome-message p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+}
+
+.search-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.search-arrow svg {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
 /* Timeline Controls */
 .timeline-controls {
     background: var(--surface);
@@ -869,19 +915,18 @@ body {
 
 .controls-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--border-color);
     margin-bottom: 1rem;
     cursor: pointer;
     user-select: none;
+    transition: opacity 0.2s;
 }
 
-.controls-header h3 {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--text-primary);
+.controls-header:hover {
+    opacity: 0.7;
 }
 
 .controls-header .collapse-icon {
@@ -1493,6 +1538,95 @@ body {
     color: #a7f3d0;
 }
 
+/* Footer */
+.footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.footer-center {
+    flex: 1;
+    text-align: center;
+}
+
+.footer-center p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.footer-center a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.footer-center a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.footer-app-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+}
+
+.footer-icon {
+    padding: 0.5rem;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.footer-icon:hover {
+    opacity: 1;
+}
+
+.footer-theme {
+    display: flex;
+}
+
+.footer-theme .footer-icon[data-theme="dark"] {
+    background: var(--primary-color);
+    color: white;
+    opacity: 1;
+    border-radius: 6px;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .container {
@@ -1548,8 +1682,47 @@ body {
         display: none;
     }
 
-    #navHelpBtn {
-        display: none;
+    /* Welcome Message */
+    .welcome-message {
+        padding: 2rem 1rem;
+        min-height: 300px;
+    }
+
+    .welcome-message h2 {
+        font-size: 1.75rem;
+    }
+
+    .welcome-message p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .search-arrow {
+        font-size: 1rem;
+    }
+
+    /* Footer */
+    .footer-content {
+        flex-direction: column;
+        padding: 0 1rem;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .footer-left {
+        order: 2;
+    }
+
+    .footer-center {
+        order: 1;
+    }
+
+    .footer-right {
+        order: 3;
+    }
+
+    .footer-center p {
+        font-size: 0.8rem;
     }
 
     .header h1 {

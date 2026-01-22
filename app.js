@@ -261,13 +261,16 @@ class WeatherTimeline {
         // Navbar elements
         this.appLogo = document.querySelector('.app-logo');
         this.navbarSearch = document.getElementById('navbarSearch');
-        this.navHelpBtn = document.getElementById('navHelpBtn');
         this.navSettingsBtn = document.getElementById('navSettingsBtn');
         this.clearSearchBtn = document.getElementById('clearSearchBtn');
         this.navbarAutocomplete = document.getElementById('navbarAutocomplete');
         this.themeToggleBtn = document.getElementById('themeToggleBtn');
         this.langDropdownBtn = document.getElementById('langDropdownBtn');
         this.langDropdownMenu = document.getElementById('langDropdownMenu');
+
+        // Footer elements
+        this.footerSettingsBtn = document.getElementById('footerSettingsBtn');
+        this.footerThemeToggleBtn = document.getElementById('footerThemeToggleBtn');
 
         // Settings
         this.settingsPanel = document.getElementById('settingsPanel');
@@ -283,13 +286,9 @@ class WeatherTimeline {
 
         // Display
         this.favoriteBtn = document.getElementById('favoriteBtn');
+        this.welcomeMessage = document.getElementById('welcomeMessage');
         this.timelineControls = document.getElementById('timelineControls');
         this.timelinesWrapper = document.getElementById('timelinesWrapper');
-
-        // Timeline controls
-        this.addTimelineBtn = document.getElementById('addTimelineBtn');
-        this.jumpToDateBtn = document.getElementById('jumpToDateBtn');
-        this.syncScrollBtn = document.getElementById('syncScrollBtn');
 
         // Add Timeline Modal
         this.addTimelineModal = document.getElementById('addTimelineModal');
@@ -332,9 +331,14 @@ class WeatherTimeline {
         });
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
 
-        // Navbar - Help
-        this.navHelpBtn.addEventListener('click', () => this.openKeyboardHelp());
-        this.closeKeyboardHelp.addEventListener('click', () => this.closeKeyboardHelpModal());
+        // Footer - Settings and Theme
+        this.footerSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openSettings();
+        });
+        this.footerThemeToggleBtn.addEventListener('click', () => {
+            this.toggleTheme();
+        });
 
         // Navbar - Search
         this.navbarSearch.addEventListener('input', (e) => this.handleNavbarSearchInput(e.target.value));
@@ -447,11 +451,6 @@ class WeatherTimeline {
                 }
             });
         });
-
-        // Timeline controls
-        this.addTimelineBtn.addEventListener('click', () => this.openAddTimelineModal());
-        this.jumpToDateBtn.addEventListener('click', () => this.openJumpToDateModal());
-        this.syncScrollBtn.addEventListener('click', () => this.toggleSyncScroll());
 
         // Add Timeline Modal
         this.closeModal.addEventListener('click', () => this.closeAddTimelineModal());
@@ -599,31 +598,35 @@ class WeatherTimeline {
         this.savePreferences();
         document.documentElement.setAttribute('data-theme', theme);
 
+        const lightIconHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        `;
+
+        const darkIconHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        `;
+
         // Update navbar theme button
         this.themeToggleBtn.dataset.theme = theme;
-        if (theme === 'dark') {
-            this.themeToggleBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            `;
-            this.themeToggleBtn.title = 'Toggle Theme (Light/Dark)';
-        } else {
-            this.themeToggleBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-            `;
-            this.themeToggleBtn.title = 'Toggle Theme (Light/Dark)';
-        }
+        this.themeToggleBtn.innerHTML = theme === 'dark' ? darkIconHTML : lightIconHTML;
+        this.themeToggleBtn.title = 'Toggle Theme (Light/Dark)';
+
+        // Update footer theme button
+        this.footerThemeToggleBtn.dataset.theme = theme;
+        this.footerThemeToggleBtn.innerHTML = theme === 'dark' ? darkIconHTML : lightIconHTML;
+        this.footerThemeToggleBtn.title = 'Toggle Theme (Light/Dark)';
 
         // Update settings panel theme buttons
         document.querySelectorAll('.settings-section [data-theme]').forEach(btn => {
@@ -1021,9 +1024,10 @@ class WeatherTimeline {
         this.favoriteBtn.style.display = 'none';
         this.hideNavbarAutocomplete();
         this.currentLocation = null;
+        this.welcomeMessage.style.display = 'flex';
         this.timelineControls.style.display = 'none';
         this.timelinesWrapper.style.display = 'none';
-        this.navbarSearch.placeholder = 'Search for a city...';
+        this.navbarSearch.placeholder = this.t('searchPlaceholder');
     }
 
     // Geolocation
@@ -1871,6 +1875,7 @@ class WeatherTimeline {
     }
 
     showTimelines() {
+        this.welcomeMessage.style.display = 'none';
         this.timelineControls.style.display = 'block';
         this.timelinesWrapper.style.display = 'flex';
     }
