@@ -208,7 +208,7 @@ class WeatherTimeline {
         this.currentLocation = null;
         this.currentView = this.preferences.view || 'daily';
         this.currentLang = this.preferences.lang || 'en';
-        this.timelines = [{ yearsAgo: 0 }]; // Start with only current year
+        this.timelines = [{ yearsAgo: 0 }, { yearsAgo: 1 }]; // Start with current year and 1 year ago
         this.weatherDataCache = {}; // Cache weather data by year
         this.syncScroll = true;
         this.autocompleteResults = [];
@@ -345,6 +345,8 @@ class WeatherTimeline {
         this.closeSettingsBtn = document.getElementById('closeSettings');
         this.favoritesList = document.getElementById('favoritesList');
         this.favoritesHeader = document.getElementById('favoritesHeader');
+        this.keyboardShortcutsList = document.getElementById('keyboardShortcutsList');
+        this.keyboardShortcutsHeader = document.getElementById('keyboardShortcutsHeader');
 
         // Location controls
         this.toggleControlsBtn = document.getElementById('toggleControlsBtn');
@@ -449,6 +451,12 @@ class WeatherTimeline {
         this.favoritesHeader.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleFavoritesList();
+        });
+
+        // Collapsable keyboard shortcuts
+        this.keyboardShortcutsHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleKeyboardShortcutsList();
         });
 
         // Navbar theme toggle button
@@ -822,7 +830,6 @@ class WeatherTimeline {
         if (labels[0]) labels[0].textContent = this.t('theme');
         if (labels[1]) labels[1].textContent = this.t('language');
         if (labels[2]) labels[2].textContent = this.t('temperatureUnit');
-        if (labels[3]) labels[3].textContent = this.t('keyboardShortcuts');
 
         // Update theme buttons
         const themeButtons = this.settingsPanel.querySelectorAll('.settings-section [data-theme]');
@@ -834,6 +841,10 @@ class WeatherTimeline {
         // Update favorites header
         const favoritesHeader = this.favoritesHeader.querySelector('h4');
         if (favoritesHeader) favoritesHeader.textContent = this.t('favoriteLocations');
+
+        // Update keyboard shortcuts header
+        const keyboardShortcutsHeader = this.keyboardShortcutsHeader.querySelector('h4');
+        if (keyboardShortcutsHeader) keyboardShortcutsHeader.textContent = this.t('keyboardShortcuts');
 
         // Update keyboard shortcuts descriptions
         const shortcutItems = this.settingsPanel.querySelectorAll('.keyboard-shortcuts-list .shortcut-item span');
@@ -847,6 +858,12 @@ class WeatherTimeline {
     toggleFavoritesList() {
         this.favoritesList.classList.toggle('collapsed');
         const icon = this.favoritesHeader.querySelector('.collapse-icon');
+        icon.classList.toggle('rotated');
+    }
+
+    toggleKeyboardShortcutsList() {
+        this.keyboardShortcutsList.classList.toggle('collapsed');
+        const icon = this.keyboardShortcutsHeader.querySelector('.collapse-icon');
         icon.classList.toggle('rotated');
     }
 
