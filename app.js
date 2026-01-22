@@ -7,7 +7,7 @@ class WeatherTimeline {
         // App state
         this.currentLocation = null;
         this.currentView = this.preferences.view || 'daily';
-        this.timelines = [{ yearsAgo: 0 }, { yearsAgo: 1 }]; // Start with current year and 1 year ago
+        this.timelines = [{ yearsAgo: 0 }]; // Start with only current year
         this.weatherDataCache = {}; // Cache weather data by year
         this.syncScroll = true;
         this.autocompleteResults = [];
@@ -119,6 +119,9 @@ class WeatherTimeline {
         this.jumpDateInput = document.getElementById('jumpDate');
         this.cancelJumpToDate = document.getElementById('cancelJumpToDate');
         this.confirmJumpToDate = document.getElementById('confirmJumpToDate');
+        this.jumpToday = document.getElementById('jumpToday');
+        this.jumpLastWeek = document.getElementById('jumpLastWeek');
+        this.jumpLastMonth = document.getElementById('jumpLastMonth');
 
         // Utility
         this.loadingIndicator = document.getElementById('loadingIndicator');
@@ -226,6 +229,11 @@ class WeatherTimeline {
         this.jumpDateInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.jumpToDate();
         });
+
+        // Jump to date preset buttons
+        this.jumpToday.addEventListener('click', () => this.jumpToPresetDate(0));
+        this.jumpLastWeek.addEventListener('click', () => this.jumpToPresetDate(7));
+        this.jumpLastMonth.addEventListener('click', () => this.jumpToPresetDate(30));
 
         // Close jump to date modal on background click
         this.jumpToDateModal.addEventListener('click', (e) => {
@@ -580,8 +588,10 @@ class WeatherTimeline {
 
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (isAutocompleteVisible && this.autocompleteSelectedIndex >= 0) {
-                this.selectAutocompleteItem(this.autocompleteSelectedIndex);
+            if (isAutocompleteVisible) {
+                // Select first result if no selection made, otherwise use selected index
+                const indexToSelect = this.autocompleteSelectedIndex >= 0 ? this.autocompleteSelectedIndex : 0;
+                this.selectAutocompleteItem(indexToSelect);
             } else {
                 this.searchCity();
             }
@@ -622,23 +632,34 @@ class WeatherTimeline {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 try {
-                    // Get city name from coordinates
-                    const url = `https://geocoding-api.open-meteo.com/v1/search?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&count=1&language=en&format=json`;
-                    const response = await fetch(url);
+                    // Get city name from coordinates using reverse geocoding
+                    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10&addressdetails=1`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'User-Agent': 'WeatherTimelineApp/1.0'
+                        }
+                    });
                     const data = await response.json();
 
                     let cityName = 'Current Location';
                     let country = '';
 
-                    if (data.results && data.results.length > 0) {
-                        cityName = data.results[0].name;
-                        country = data.results[0].country;
+                    if (data.address) {
+                        // Try to get city name from different fields
+                        cityName = data.address.city ||
+                                   data.address.town ||
+                                   data.address.village ||
+                                   data.address.county ||
+                                   data.address.state ||
+                                   'Current Location';
+                        country = data.address.country || '';
                     }
 
                     this.loadWeatherData(position.coords.latitude, position.coords.longitude, cityName, country);
                 } catch (error) {
                     console.error('Geocoding error:', error);
-                    this.loadWeatherData(position.coords.latitude, position.coords.longitude);
+                    // Fallback: still load weather but with generic name
+                    this.loadWeatherData(position.coords.latitude, position.coords.longitude, 'Current Location', '');
                 }
             },
             (error) => {
@@ -919,6 +940,11 @@ class WeatherTimeline {
         this.jumpToDateModal.style.display = 'none';
     }
 
+    jumpToPresetDate(daysBack) {
+        this.closeJumpToDateModal();
+        this.scrollToDate(daysBack);
+    }
+
     jumpToDate() {
         const selectedDate = new Date(this.jumpDateInput.value);
 
@@ -1144,33 +1170,39 @@ class WeatherTimeline {
         let isScrolling = false;
         let scrollTimeout = null;
 
-        scrollContainers.forEach(container => {
-            container.addEventListener('scroll', (e) => {
-                if (!this.syncScroll || isScrolling) return;
+        // Find the Current Weather timeline (yearsAgo: 0)
+        const currentWeatherSection = document.querySelector('[data-years-ago="0"]');
+        if (!currentWeatherSection) return;
 
-                isScrolling = true;
-                const scrollPercent = e.target.scrollLeft / (e.target.scrollWidth - e.target.clientWidth);
+        const currentWeatherScroll = currentWeatherSection.querySelector('.timeline-scroll');
+        if (!currentWeatherScroll) return;
 
-                // Clear any existing timeout
-                if (scrollTimeout) {
-                    clearTimeout(scrollTimeout);
-                }
+        // Only sync from Current Weather timeline to others
+        currentWeatherScroll.addEventListener('scroll', (e) => {
+            if (!this.syncScroll || isScrolling) return;
 
-                // Wait for scroll to finish before updating other containers
-                scrollTimeout = setTimeout(() => {
-                    scrollContainers.forEach(other => {
-                        if (other !== e.target) {
-                            const targetScroll = scrollPercent * (other.scrollWidth - other.clientWidth);
-                            other.scrollLeft = targetScroll;
-                        }
-                    });
+            isScrolling = true;
+            const scrollPercent = e.target.scrollLeft / (e.target.scrollWidth - e.target.clientWidth);
 
-                    // Reset after all scrolls complete
-                    setTimeout(() => {
-                        isScrolling = false;
-                    }, 100);
-                }, 500); // 0.5s delay as requested
-            });
+            // Clear any existing timeout
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+
+            // Wait for scroll to finish before updating other containers
+            scrollTimeout = setTimeout(() => {
+                scrollContainers.forEach(other => {
+                    if (other !== e.target) {
+                        const targetScroll = scrollPercent * (other.scrollWidth - other.clientWidth);
+                        other.scrollLeft = targetScroll;
+                    }
+                });
+
+                // Reset after all scrolls complete
+                setTimeout(() => {
+                    isScrolling = false;
+                }, 100);
+            }, 500); // 0.5s delay as requested
         });
     }
 

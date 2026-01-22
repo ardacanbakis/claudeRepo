@@ -27,7 +27,7 @@
                     <button id="settingsBtn" class="btn btn-icon" title="Settings" aria-label="Settings">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m5.66-13a9 9 0 0 1 0 12M6.34 6a9 9 0 0 0 0 12"></path>
+                            <path d="M12 2v2m0 16v2M6.34 6.34l-1.42-1.42M19.08 19.08l-1.42-1.42M2 12h2m16 0h2M6.34 17.66l-1.42 1.42M19.08 4.92l-1.42 1.42"></path>
                         </svg>
                     </button>
                 </div>
@@ -236,7 +236,13 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <label for="jumpDate">Select a date to view:</label>
+                    <label>Quick Jump:</label>
+                    <div class="date-presets">
+                        <button id="jumpToday" class="btn btn-outline btn-sm">Today</button>
+                        <button id="jumpLastWeek" class="btn btn-outline btn-sm">Last Week</button>
+                        <button id="jumpLastMonth" class="btn btn-outline btn-sm">Last Month</button>
+                    </div>
+                    <label for="jumpDate" style="margin-top: 1rem; display: block;">Or select a custom date:</label>
                     <input type="date" id="jumpDate" />
                     <p class="help-text">Navigate to a specific date on all timelines</p>
                 </div>
