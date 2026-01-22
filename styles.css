@@ -447,7 +447,7 @@ body {
 
 /* Settings Modal */
 .settings-modal-content {
-    max-width: 45%;
+    max-width: 85%;
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -1035,7 +1035,7 @@ body {
 .timeline-controls {
     background: transparent;
     padding: 1rem;
-    margin-top: 1.5rem;
+    margin-top: 0;
 }
 
 .controls-header {
@@ -1111,6 +1111,13 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.timeline-action-buttons {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .favorites-section {
@@ -1215,6 +1222,31 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* Fixed Headers Section (non-scrolling) */
+.timeline-headers-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.timeline-fixed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.timeline-fixed-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
 .unified-scroll-wrapper {
     position: relative;
     display: flex;
@@ -1234,7 +1266,7 @@ body {
 }
 
 .unified-timeline-scroll::-webkit-scrollbar {
-    height: 8px;
+    height: 10px;
 }
 
 .unified-timeline-scroll::-webkit-scrollbar-track {
@@ -1251,29 +1283,24 @@ body {
     background: var(--secondary-color);
 }
 
-/* Timeline Row */
-.timeline-row {
+/* Larger scroll buttons */
+.scroll-btn-large {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+}
+
+.scroll-btn-large svg {
+    width: 32px;
+    height: 32px;
+}
+
+/* Timeline Track */
+.timeline-track {
     display: flex;
-    flex-direction: column;
     gap: 1rem;
-    min-width: max-content;
-}
-
-.timeline-row-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.timeline-row-header h2 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex: 1;
+    padding: 0.5rem 0;
+    min-width: min-content;
 }
 
 /* Legacy timeline styles (keeping for compatibility) */
