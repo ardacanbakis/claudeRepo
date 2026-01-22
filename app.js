@@ -292,6 +292,10 @@ class WeatherTimeline {
         if (langTextSpan) {
             langTextSpan.textContent = langNames[this.currentLang];
         }
+        const footerLangTextSpan = this.footerLangDropdownBtn.querySelector('.lang-text');
+        if (footerLangTextSpan) {
+            footerLangTextSpan.textContent = langNames[this.currentLang];
+        }
 
         // Update language dropdown menu
         document.querySelectorAll('.lang-option').forEach(btn => {
@@ -321,6 +325,7 @@ class WeatherTimeline {
     setupElements() {
         // Navbar elements
         this.appLogo = document.querySelector('.app-logo');
+        this.appName = document.querySelector('.app-name');
         this.navbarSearch = document.getElementById('navbarSearch');
         this.navSettingsBtn = document.getElementById('navSettingsBtn');
         this.clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -338,6 +343,8 @@ class WeatherTimeline {
         this.footerFavoritesDropdownList = document.getElementById('footerFavoritesDropdownList');
         this.footerShareBtn = document.getElementById('footerShareBtn');
         this.footerSettingsBtn = document.getElementById('footerSettingsBtn');
+        this.footerLangDropdownBtn = document.getElementById('footerLangDropdownBtn');
+        this.footerLangDropdownMenu = document.getElementById('footerLangDropdownMenu');
         this.footerThemeToggleBtn = document.getElementById('footerThemeToggleBtn');
         this.footerLogo = document.querySelector('.footer-logo');
 
@@ -351,7 +358,6 @@ class WeatherTimeline {
         this.keyboardShortcutsHeader = document.getElementById('keyboardShortcutsHeader');
 
         // Location controls
-        this.toggleControlsBtn = document.getElementById('toggleControlsBtn');
         this.controlsContent = document.getElementById('controlsContent');
         this.viewBtns = document.querySelectorAll('.btn-view[data-view]');
 
@@ -392,6 +398,11 @@ class WeatherTimeline {
     setupEventListeners() {
         // Logo - Scroll to top
         this.appLogo.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // App Name - Scroll to top
+        this.appName.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
@@ -449,9 +460,6 @@ class WeatherTimeline {
         // Clear search button
         this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
 
-        // Toggle controls
-        this.toggleControlsBtn.addEventListener('click', () => this.toggleControls());
-
         // Collapsable favorites
         this.favoritesHeader.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -486,12 +494,23 @@ class WeatherTimeline {
             });
         });
 
-        // Close language dropdown when clicking outside
+        // Footer language dropdown
+        this.footerLangDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFooterLangDropdown();
+        });
+
+        // Close language dropdowns when clicking outside
         document.addEventListener('click', (e) => {
             if (this.langDropdownMenu.style.display === 'block' &&
                 !this.langDropdownBtn.contains(e.target) &&
                 !this.langDropdownMenu.contains(e.target)) {
                 this.langDropdownMenu.style.display = 'none';
+            }
+            if (this.footerLangDropdownMenu.style.display === 'block' &&
+                !this.footerLangDropdownBtn.contains(e.target) &&
+                !this.footerLangDropdownMenu.contains(e.target)) {
+                this.footerLangDropdownMenu.style.display = 'none';
             }
         });
 
@@ -759,23 +778,37 @@ class WeatherTimeline {
         this.langDropdownMenu.style.display = isVisible ? 'none' : 'block';
     }
 
+    // Footer language dropdown toggle
+    toggleFooterLangDropdown() {
+        const isVisible = this.footerLangDropdownMenu.style.display === 'block';
+        this.footerLangDropdownMenu.style.display = isVisible ? 'none' : 'block';
+    }
+
     // Language management
     changeLanguage(lang) {
         this.currentLang = lang;
         this.preferences.lang = lang;
         this.savePreferences();
 
-        // Update navbar dropdown button text
+        // Update navbar and footer dropdown button text
         const langNames = { en: 'EN', tr: 'TR', es: 'ES' };
         const langTextSpan = this.langDropdownBtn.querySelector('.lang-text');
         if (langTextSpan) {
             langTextSpan.textContent = langNames[lang];
+        }
+        const footerLangTextSpan = this.footerLangDropdownBtn.querySelector('.lang-text');
+        if (footerLangTextSpan) {
+            footerLangTextSpan.textContent = langNames[lang];
         }
 
         // Update dropdown menu active state
         document.querySelectorAll('.lang-option').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === lang);
         });
+
+        // Close both dropdowns
+        this.langDropdownMenu.style.display = 'none';
+        this.footerLangDropdownMenu.style.display = 'none';
 
         // Update settings panel language buttons
         document.querySelectorAll('.settings-section [data-lang]').forEach(btn => {
