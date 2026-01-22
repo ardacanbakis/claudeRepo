@@ -26,7 +26,10 @@
                         <path d="M20 22 C20 22, 25 20, 30 22 C35 24, 38 26, 38 30 C38 34, 35 36, 30 36 L18 36 C13 36, 10 34, 10 30 C10 26, 13 24, 18 24 C18 24, 19 23, 20 22 Z" fill="#F0F9FF"/>
                     </svg>
                 </div>
-                <span class="app-name">Weather Timeline</span>
+                <span class="app-name">
+                    <span class="app-name-line">Weather</span>
+                    <span class="app-name-line">Timeline</span>
+                </span>
             </div>
 
             <!-- Center: Merged Search/Location Bar -->
@@ -58,7 +61,7 @@
                 </button>
 
                 <div class="theme-selector navbar-theme">
-                    <button class="btn btn-icon navbar-icon" data-theme="light" title="Light">
+                    <button id="themeToggleBtn" class="btn btn-icon navbar-icon" data-theme="light" title="Toggle Theme (Light/Dark)">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="5"></circle>
                             <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -71,24 +74,20 @@
                             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                         </svg>
                     </button>
-                    <button class="btn btn-icon navbar-icon active" data-theme="system" title="System">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                            <line x1="8" y1="21" x2="16" y2="21"></line>
-                            <line x1="12" y1="17" x2="12" y2="21"></line>
-                        </svg>
-                    </button>
-                    <button class="btn btn-icon navbar-icon" data-theme="dark" title="Dark">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                        </svg>
-                    </button>
                 </div>
 
                 <div class="language-selector navbar-lang">
-                    <button class="btn btn-text navbar-lang-btn active" data-lang="en">EN</button>
-                    <button class="btn btn-text navbar-lang-btn" data-lang="tr">TR</button>
-                    <button class="btn btn-text navbar-lang-btn" data-lang="es">ES</button>
+                    <button id="langDropdownBtn" class="btn btn-icon navbar-lang-dropdown" title="Language">
+                        <span class="lang-text">EN</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="langDropdownMenu" class="lang-dropdown-menu" style="display: none;">
+                        <button class="lang-option active" data-lang="en">English</button>
+                        <button class="lang-option" data-lang="tr">Türkçe</button>
+                        <button class="lang-option" data-lang="es">Español</button>
+                    </div>
                 </div>
 
                 <button id="navSettingsBtn" class="btn btn-icon navbar-icon" title="Settings" aria-label="Settings">
@@ -118,9 +117,17 @@
                 <div class="settings-section">
                     <label>Theme</label>
                     <div class="btn-group">
-                        <button class="btn btn-view" data-theme="light">Light</button>
-                        <button class="btn btn-view active" data-theme="system">System</button>
+                        <button class="btn btn-view active" data-theme="light">Light</button>
                         <button class="btn btn-view" data-theme="dark">Dark</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <label>Language</label>
+                    <div class="btn-group">
+                        <button class="btn btn-view active" data-lang="en">English</button>
+                        <button class="btn btn-view" data-lang="tr">Türkçe</button>
+                        <button class="btn btn-view" data-lang="es">Español</button>
                     </div>
                 </div>
 

@@ -1,4 +1,147 @@
 // Weather Timeline App with Enhanced Features
+
+// Translations
+const translations = {
+    en: {
+        searchPlaceholder: 'Search for a city...',
+        currentWeather: 'Current Weather',
+        oneYearAgo: 'One Year Ago',
+        yearsAgo: 'Years Ago',
+        addComparisonYear: 'Add Comparison Year',
+        jumpToDate: 'Jump to Date',
+        syncScroll: 'Sync Scroll',
+        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        weatherConditions: {
+            'clear sky': 'clear sky',
+            'mainly clear': 'mainly clear',
+            'partly cloudy': 'partly cloudy',
+            'overcast': 'overcast',
+            'foggy': 'foggy',
+            'depositing rime fog': 'depositing rime fog',
+            'light drizzle': 'light drizzle',
+            'moderate drizzle': 'moderate drizzle',
+            'dense drizzle': 'dense drizzle',
+            'light freezing drizzle': 'light freezing drizzle',
+            'dense freezing drizzle': 'dense freezing drizzle',
+            'slight rain': 'slight rain',
+            'moderate rain': 'moderate rain',
+            'heavy rain': 'heavy rain',
+            'light freezing rain': 'light freezing rain',
+            'heavy freezing rain': 'heavy freezing rain',
+            'slight snow': 'slight snow',
+            'moderate snow': 'moderate snow',
+            'heavy snow': 'heavy snow',
+            'snow grains': 'snow grains',
+            'slight rain showers': 'slight rain showers',
+            'moderate rain showers': 'moderate rain showers',
+            'violent rain showers': 'violent rain showers',
+            'slight snow showers': 'slight snow showers',
+            'heavy snow showers': 'heavy snow showers',
+            'thunderstorm': 'thunderstorm',
+            'thunderstorm with slight hail': 'thunderstorm with slight hail',
+            'thunderstorm with heavy hail': 'thunderstorm with heavy hail',
+            'unknown': 'unknown'
+        },
+        weeklyAverage: 'Weekly Average',
+        monthlyAverage: 'Monthly Average'
+    },
+    tr: {
+        searchPlaceholder: 'Şehir ara...',
+        currentWeather: 'Güncel Hava Durumu',
+        oneYearAgo: 'Bir Yıl Önce',
+        yearsAgo: 'Yıl Önce',
+        addComparisonYear: 'Karşılaştırma Yılı Ekle',
+        jumpToDate: 'Tarihe Git',
+        syncScroll: 'Senkronize Kaydırma',
+        months: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+        monthsShort: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],
+        days: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+        daysShort: ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'],
+        weatherConditions: {
+            'clear sky': 'açık hava',
+            'mainly clear': 'ağırlıklı açık',
+            'partly cloudy': 'parçalı bulutlu',
+            'overcast': 'kapalı',
+            'foggy': 'sisli',
+            'depositing rime fog': 'kırağılı sis',
+            'light drizzle': 'hafif çisenti',
+            'moderate drizzle': 'orta çisenti',
+            'dense drizzle': 'yoğun çisenti',
+            'light freezing drizzle': 'hafif dondurucu çisenti',
+            'dense freezing drizzle': 'yoğun dondurucu çisenti',
+            'slight rain': 'hafif yağmur',
+            'moderate rain': 'orta yağmur',
+            'heavy rain': 'şiddetli yağmur',
+            'light freezing rain': 'hafif dondurucu yağmur',
+            'heavy freezing rain': 'şiddetli dondurucu yağmur',
+            'slight snow': 'hafif kar',
+            'moderate snow': 'orta kar',
+            'heavy snow': 'yoğun kar',
+            'snow grains': 'kar taneleri',
+            'slight rain showers': 'hafif sağanak yağış',
+            'moderate rain showers': 'orta sağanak yağış',
+            'violent rain showers': 'şiddetli sağanak yağış',
+            'slight snow showers': 'hafif kar yağışı',
+            'heavy snow showers': 'yoğun kar yağışı',
+            'thunderstorm': 'fırtına',
+            'thunderstorm with slight hail': 'hafif dolu ile fırtına',
+            'thunderstorm with heavy hail': 'yoğun dolu ile fırtına',
+            'unknown': 'bilinmiyor'
+        },
+        weeklyAverage: 'Haftalık Ortalama',
+        monthlyAverage: 'Aylık Ortalama'
+    },
+    es: {
+        searchPlaceholder: 'Buscar ciudad...',
+        currentWeather: 'Clima Actual',
+        oneYearAgo: 'Hace un Año',
+        yearsAgo: 'Años Atrás',
+        addComparisonYear: 'Agregar Año de Comparación',
+        jumpToDate: 'Ir a Fecha',
+        syncScroll: 'Desplazamiento Sincronizado',
+        months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+        daysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        weatherConditions: {
+            'clear sky': 'cielo despejado',
+            'mainly clear': 'principalmente despejado',
+            'partly cloudy': 'parcialmente nublado',
+            'overcast': 'nublado',
+            'foggy': 'niebla',
+            'depositing rime fog': 'niebla con escarcha',
+            'light drizzle': 'llovizna ligera',
+            'moderate drizzle': 'llovizna moderada',
+            'dense drizzle': 'llovizna densa',
+            'light freezing drizzle': 'llovizna helada ligera',
+            'dense freezing drizzle': 'llovizna helada densa',
+            'slight rain': 'lluvia ligera',
+            'moderate rain': 'lluvia moderada',
+            'heavy rain': 'lluvia intensa',
+            'light freezing rain': 'lluvia helada ligera',
+            'heavy freezing rain': 'lluvia helada intensa',
+            'slight snow': 'nevada ligera',
+            'moderate snow': 'nevada moderada',
+            'heavy snow': 'nevada intensa',
+            'snow grains': 'granos de nieve',
+            'slight rain showers': 'chubascos ligeros',
+            'moderate rain showers': 'chubascos moderados',
+            'violent rain showers': 'chubascos violentos',
+            'slight snow showers': 'nevada ligera',
+            'heavy snow showers': 'nevada intensa',
+            'thunderstorm': 'tormenta',
+            'thunderstorm with slight hail': 'tormenta con granizo ligero',
+            'thunderstorm with heavy hail': 'tormenta con granizo intenso',
+            'unknown': 'desconocido'
+        },
+        weeklyAverage: 'Promedio Semanal',
+        monthlyAverage: 'Promedio Mensual'
+    }
+};
+
 class WeatherTimeline {
     constructor() {
         // Load preferences from localStorage
@@ -7,6 +150,7 @@ class WeatherTimeline {
         // App state
         this.currentLocation = null;
         this.currentView = this.preferences.view || 'daily';
+        this.currentLang = this.preferences.lang || 'en';
         this.timelines = [{ yearsAgo: 0 }]; // Start with only current year
         this.weatherDataCache = {}; // Cache weather data by year
         this.syncScroll = true;
@@ -29,19 +173,42 @@ class WeatherTimeline {
     // Load preferences from localStorage
     loadPreferences() {
         const defaults = {
-            theme: 'system',
+            theme: 'light',
             tempUnit: 'celsius',
             view: 'daily',
+            lang: 'en',
             favorites: []
         };
 
         try {
             const saved = localStorage.getItem('weather_timeline_prefs');
-            return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+            const prefs = saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+            // Migrate from system theme to light
+            if (prefs.theme === 'system') {
+                prefs.theme = 'light';
+            }
+            return prefs;
         } catch (error) {
             console.error('Failed to load preferences:', error);
             return defaults;
         }
+    }
+
+    // Get translation
+    t(key, ...args) {
+        const lang = this.currentLang || 'en';
+        const keys = key.split('.');
+        let value = translations[lang];
+
+        for (const k of keys) {
+            if (value && typeof value === 'object') {
+                value = value[k];
+            } else {
+                return key;
+            }
+        }
+
+        return value || key;
     }
 
     // Save preferences to localStorage
@@ -56,12 +223,27 @@ class WeatherTimeline {
     // Apply saved preferences
     applyPreferences() {
         // Apply theme
-        document.documentElement.setAttribute('data-theme', this.preferences.theme);
+        this.changeTheme(this.preferences.theme);
 
-        // Update theme buttons
-        document.querySelectorAll('[data-theme]').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.theme === this.preferences.theme);
+        // Apply language
+        const langNames = { en: 'EN', tr: 'TR', es: 'ES' };
+        const langTextSpan = this.langDropdownBtn.querySelector('.lang-text');
+        if (langTextSpan) {
+            langTextSpan.textContent = langNames[this.currentLang];
+        }
+
+        // Update language dropdown menu
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === this.currentLang);
         });
+
+        // Update settings panel language buttons
+        document.querySelectorAll('.settings-section [data-lang]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === this.currentLang);
+        });
+
+        // Update search placeholder
+        this.navbarSearch.placeholder = this.t('searchPlaceholder');
 
         // Update temp unit buttons
         document.querySelectorAll('[data-unit]').forEach(btn => {
@@ -82,6 +264,9 @@ class WeatherTimeline {
         this.navSettingsBtn = document.getElementById('navSettingsBtn');
         this.clearSearchBtn = document.getElementById('clearSearchBtn');
         this.navbarAutocomplete = document.getElementById('navbarAutocomplete');
+        this.themeToggleBtn = document.getElementById('themeToggleBtn');
+        this.langDropdownBtn = document.getElementById('langDropdownBtn');
+        this.langDropdownMenu = document.getElementById('langDropdownMenu');
 
         // Settings
         this.settingsPanel = document.getElementById('settingsPanel');
@@ -176,13 +361,55 @@ class WeatherTimeline {
             this.toggleFavoritesList();
         });
 
-        // Theme buttons - Fixed to use currentTarget and stopPropagation
-        document.querySelectorAll('[data-theme]').forEach(btn => {
+        // Navbar theme toggle button
+        this.themeToggleBtn.addEventListener('click', () => {
+            this.toggleTheme();
+        });
+
+        // Navbar language dropdown
+        this.langDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleLangDropdown();
+        });
+
+        // Language options in dropdown
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = e.currentTarget.dataset.lang;
+                if (lang) {
+                    this.changeLanguage(lang);
+                    this.langDropdownMenu.style.display = 'none';
+                }
+            });
+        });
+
+        // Close language dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (this.langDropdownMenu.style.display === 'block' &&
+                !this.langDropdownBtn.contains(e.target) &&
+                !this.langDropdownMenu.contains(e.target)) {
+                this.langDropdownMenu.style.display = 'none';
+            }
+        });
+
+        // Theme buttons in settings panel
+        document.querySelectorAll('.settings-section [data-theme]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent settings panel from closing
                 const theme = e.currentTarget.dataset.theme;
                 if (theme) {
                     this.changeTheme(theme);
+                }
+            });
+        });
+
+        // Language buttons in settings panel
+        document.querySelectorAll('.settings-section [data-lang]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const lang = e.currentTarget.dataset.lang;
+                if (lang) {
+                    this.changeLanguage(lang);
                 }
             });
         });
@@ -194,16 +421,6 @@ class WeatherTimeline {
                 const unit = e.currentTarget.dataset.unit;
                 if (unit) {
                     this.changeTempUnit(unit);
-                }
-            });
-        });
-
-        // Language selector buttons
-        document.querySelectorAll('.navbar-lang-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const lang = e.currentTarget.dataset.lang;
-                if (lang) {
-                    this.changeLanguage(lang);
                 }
             });
         });
@@ -364,13 +581,46 @@ class WeatherTimeline {
         this.changeTempUnit(newUnit);
     }
 
+    // Theme toggle (Light/Dark only)
+    toggleTheme() {
+        const newTheme = this.preferences.theme === 'light' ? 'dark' : 'light';
+        this.changeTheme(newTheme);
+    }
+
     // Theme management
     changeTheme(theme) {
         this.preferences.theme = theme;
         this.savePreferences();
         document.documentElement.setAttribute('data-theme', theme);
 
-        document.querySelectorAll('[data-theme]').forEach(btn => {
+        // Update navbar theme button
+        this.themeToggleBtn.dataset.theme = theme;
+        if (theme === 'dark') {
+            this.themeToggleBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            `;
+            this.themeToggleBtn.title = 'Toggle Theme (Light/Dark)';
+        } else {
+            this.themeToggleBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            `;
+            this.themeToggleBtn.title = 'Toggle Theme (Light/Dark)';
+        }
+
+        // Update settings panel theme buttons
+        document.querySelectorAll('.settings-section [data-theme]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.theme === theme);
         });
     }
@@ -390,16 +640,42 @@ class WeatherTimeline {
         }
     }
 
+    // Language dropdown toggle
+    toggleLangDropdown() {
+        const isVisible = this.langDropdownMenu.style.display === 'block';
+        this.langDropdownMenu.style.display = isVisible ? 'none' : 'block';
+    }
+
     // Language management
     changeLanguage(lang) {
-        // Update active state on language buttons
-        document.querySelectorAll('.navbar-lang-btn').forEach(btn => {
+        this.currentLang = lang;
+        this.preferences.lang = lang;
+        this.savePreferences();
+
+        // Update navbar dropdown button text
+        const langNames = { en: 'EN', tr: 'TR', es: 'ES' };
+        const langTextSpan = this.langDropdownBtn.querySelector('.lang-text');
+        if (langTextSpan) {
+            langTextSpan.textContent = langNames[lang];
+        }
+
+        // Update dropdown menu active state
+        document.querySelectorAll('.lang-option').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === lang);
         });
 
-        // Note: Full language implementation would require translations
-        // For now, just update the UI state
-        this.showSuccess(`Language changed to ${lang.toUpperCase()}`);
+        // Update settings panel language buttons
+        document.querySelectorAll('.settings-section [data-lang]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        // Update search placeholder
+        this.navbarSearch.placeholder = this.t('searchPlaceholder');
+
+        // Re-render timelines if location is selected
+        if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
+            this.renderAllTimelines();
+        }
     }
 
     // Convert temperature
@@ -999,7 +1275,8 @@ class WeatherTimeline {
             85: 'slight snow showers', 86: 'heavy snow showers',
             95: 'thunderstorm', 96: 'thunderstorm with slight hail', 99: 'thunderstorm with heavy hail'
         };
-        return descriptions[code] || 'unknown';
+        const englishDesc = descriptions[code] || 'unknown';
+        return this.t(`weatherConditions.${englishDesc}`);
     }
 
     getEmojiFromCode(code) {
@@ -1184,10 +1461,20 @@ class WeatherTimeline {
 
     toggleSyncScroll() {
         this.syncScroll = !this.syncScroll;
-        this.syncScrollBtn.classList.toggle('active', this.syncScroll);
+
+        // Update all sync scroll buttons in timeline headers
+        document.querySelectorAll('.sync-scroll-btn').forEach(btn => {
+            btn.classList.toggle('active', this.syncScroll);
+        });
+
+        // Update sync scroll button in controls (if it exists)
+        if (this.syncScrollBtn) {
+            this.syncScrollBtn.classList.toggle('active', this.syncScroll);
+        }
 
         if (this.syncScroll) {
             this.showSuccess('Scroll synchronization enabled');
+            this.setupScrollSync();
         } else {
             this.showSuccess('Scroll synchronization disabled');
         }
@@ -1218,41 +1505,92 @@ class WeatherTimeline {
         section.dataset.yearsAgo = timeline.yearsAgo;
 
         const year = new Date().getFullYear() - timeline.yearsAgo;
-        const title = timeline.yearsAgo === 0 ? 'Current Weather' :
-                      timeline.yearsAgo === 1 ? 'One Year Ago' :
-                      `${timeline.yearsAgo} Years Ago`;
+        const title = timeline.yearsAgo === 0 ? this.t('currentWeather') :
+                      timeline.yearsAgo === 1 ? this.t('oneYearAgo') :
+                      `${timeline.yearsAgo} ${this.t('yearsAgo')}`;
 
-        // Fixed: Moved year label to center of header
-        section.innerHTML = `
-            <div class="timeline-header">
-                <h2>
-                    ${title}
-                    <span class="year-label-inline">${year}</span>
-                </h2>
-                ${timeline.yearsAgo > 0 ? `
-                    <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12"></path>
+        // Current Weather header: Title + Year + Add Comparison + Jump to Date
+        // Comparison Year header: Title + Year + Sync Scroll + Remove
+        if (timeline.yearsAgo === 0) {
+            section.innerHTML = `
+                <div class="timeline-header">
+                    <h2>
+                        ${title}
+                        <span class="year-label-inline">${year}</span>
+                    </h2>
+                    <div class="timeline-header-actions">
+                        <button id="addTimelineBtn" class="btn btn-outline btn-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14m-7-7h14"></path>
+                            </svg>
+                            <span class="btn-text-inline">${this.t('addComparisonYear')}</span>
+                        </button>
+                        <button id="jumpToDateBtn" class="btn btn-outline btn-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span class="btn-text-inline">${this.t('jumpToDate')}</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="timeline-wrapper">
+                    <button class="scroll-btn scroll-left">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"></path>
                         </svg>
                     </button>
-                ` : ''}
-            </div>
-            <div class="timeline-wrapper">
-                <button class="scroll-btn scroll-left">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 18l-6-6 6-6"></path>
-                    </svg>
-                </button>
-                <div class="timeline-scroll">
-                    <div class="timeline-track"></div>
+                    <div class="timeline-scroll">
+                        <div class="timeline-track"></div>
+                    </div>
+                    <button class="scroll-btn scroll-right">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                    </button>
                 </div>
-                <button class="scroll-btn scroll-right">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 18l6-6-6-6"></path>
-                    </svg>
-                </button>
-            </div>
-        `;
+            `;
+        } else {
+            section.innerHTML = `
+                <div class="timeline-header">
+                    <h2>
+                        ${title}
+                        <span class="year-label-inline">${year}</span>
+                    </h2>
+                    <div class="timeline-header-actions">
+                        <button class="btn btn-outline btn-sm sync-scroll-btn ${this.syncScroll ? 'active' : ''}" title="${this.t('syncScroll')}" data-years-ago="${timeline.yearsAgo}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 4v6h-6M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            <span class="btn-text-inline">${this.t('syncScroll')}</span>
+                        </button>
+                        <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="timeline-wrapper">
+                    <button class="scroll-btn scroll-left">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div class="timeline-scroll">
+                        <div class="timeline-track"></div>
+                    </div>
+                    <button class="scroll-btn scroll-right">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }
 
         // Add timeline items
         const track = section.querySelector('.timeline-track');
@@ -1272,10 +1610,29 @@ class WeatherTimeline {
             track.appendChild(element);
         });
 
-        // Setup remove button
-        const removeBtn = section.querySelector('.remove-timeline-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => this.removeTimeline(timeline.yearsAgo));
+        // Setup header action buttons
+        if (timeline.yearsAgo === 0) {
+            // Current Weather: Add Timeline and Jump to Date buttons
+            const addTimelineBtn = section.querySelector('#addTimelineBtn');
+            const jumpToDateBtn = section.querySelector('#jumpToDateBtn');
+
+            if (addTimelineBtn) {
+                addTimelineBtn.addEventListener('click', () => this.openAddTimelineModal());
+            }
+            if (jumpToDateBtn) {
+                jumpToDateBtn.addEventListener('click', () => this.openJumpToDateModal());
+            }
+        } else {
+            // Comparison Year: Sync Scroll and Remove buttons
+            const syncScrollBtn = section.querySelector('.sync-scroll-btn');
+            const removeBtn = section.querySelector('.remove-timeline-btn');
+
+            if (syncScrollBtn) {
+                syncScrollBtn.addEventListener('click', () => this.toggleSyncScroll());
+            }
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => this.removeTimeline(timeline.yearsAgo));
+            }
         }
 
         // Setup scroll buttons
@@ -1461,21 +1818,29 @@ class WeatherTimeline {
     }
 
     formatDate(date, endDate, isWeek, isMonth) {
+        const months = this.t('months');
+        const monthsShort = this.t('monthsShort');
+
         if (isMonth) {
-            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            return `${months[date.getMonth()]} ${date.getFullYear()}`;
         } else if (isWeek && endDate) {
-            const start = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const end = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            return `${start} - ${end}`;
+            const startMonth = monthsShort[date.getMonth()];
+            const startDay = date.getDate();
+            const endMonth = monthsShort[endDate.getMonth()];
+            const endDay = endDate.getDate();
+            return `${startMonth} ${startDay} - ${endMonth} ${endDay}`;
         } else {
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const month = monthsShort[date.getMonth()];
+            const day = date.getDate();
+            return `${month} ${day}`;
         }
     }
 
     formatDay(date, isWeek, isMonth) {
-        if (isMonth) return 'Monthly Average';
-        if (isWeek) return 'Weekly Average';
-        return date.toLocaleDateString('en-US', { weekday: 'long' });
+        if (isMonth) return this.t('monthlyAverage');
+        if (isWeek) return this.t('weeklyAverage');
+        const days = this.t('days');
+        return days[date.getDay()];
     }
 
     isToday(date) {
