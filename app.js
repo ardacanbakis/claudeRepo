@@ -722,7 +722,7 @@ class WeatherTimeline {
     }
 
     cycleTheme() {
-        const themes = ['light', 'dark', 'neon', 'forest', 'ocean', 'matrix', 'sunset', 'midnight'];
+        const themes = ['light', 'dark', 'forest', 'ocean', 'matrix', 'sunset', 'midnight'];
         const currentIndex = themes.indexOf(this.preferences.theme);
         const nextIndex = (currentIndex + 1) % themes.length;
         this.changeTheme(themes[nextIndex]);
