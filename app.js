@@ -381,6 +381,7 @@ class WeatherTimeline {
         // Add Timeline Modal
         this.addTimelineModal = document.getElementById('addTimelineModal');
         this.closeModal = document.getElementById('closeModal');
+        this.specificYearInput = document.getElementById('specificYear');
         this.yearsAgoInput = document.getElementById('yearsAgo');
         this.cancelAddTimeline = document.getElementById('cancelAddTimeline');
         this.confirmAddTimeline = document.getElementById('confirmAddTimeline');
@@ -715,7 +716,7 @@ class WeatherTimeline {
     }
 
     cycleTheme() {
-        const themes = ['light', 'system', 'dark'];
+        const themes = ['light', 'dark', 'neon', 'forest', 'ocean'];
         const currentIndex = themes.indexOf(this.preferences.theme);
         const nextIndex = (currentIndex + 1) % themes.length;
         this.changeTheme(themes[nextIndex]);
@@ -1628,7 +1629,10 @@ class WeatherTimeline {
 
     // Timeline management
     openAddTimelineModal() {
-        // Set default to next available year
+        // Clear specific year input
+        this.specificYearInput.value = '';
+
+        // Set default to next available year in years back field
         const existingYears = this.timelines.map(t => t.yearsAgo);
         let nextYear = 1;
         while (existingYears.includes(nextYear) && nextYear <= 86) {
@@ -1636,7 +1640,7 @@ class WeatherTimeline {
         }
         this.yearsAgoInput.value = nextYear;
         this.addTimelineModal.style.display = 'flex';
-        setTimeout(() => this.yearsAgoInput.focus(), 100);
+        setTimeout(() => this.specificYearInput.focus(), 100);
     }
 
     closeAddTimelineModal() {
@@ -1745,11 +1749,24 @@ class WeatherTimeline {
     }
 
     async addTimeline() {
-        const yearsAgo = parseInt(this.yearsAgoInput.value);
+        let yearsAgo;
 
-        if (isNaN(yearsAgo) || yearsAgo < 1 || yearsAgo > 86) {
-            this.showError('Please enter a value between 1 and 86');
-            return;
+        // Check if specific year is entered
+        const specificYear = parseInt(this.specificYearInput.value);
+        if (specificYear) {
+            const currentYear = new Date().getFullYear();
+            if (specificYear < 1940 || specificYear > currentYear - 1) {
+                this.showError(`Please enter a year between 1940 and ${currentYear - 1}`);
+                return;
+            }
+            yearsAgo = currentYear - specificYear;
+        } else {
+            // Use years back input
+            yearsAgo = parseInt(this.yearsAgoInput.value);
+            if (isNaN(yearsAgo) || yearsAgo < 1 || yearsAgo > 86) {
+                this.showError('Please enter a value between 1 and 86');
+                return;
+            }
         }
 
         // Check if timeline already exists
@@ -1770,7 +1787,8 @@ class WeatherTimeline {
             await this.loadAllWeatherData();
 
             this.hideLoading();
-            this.showSuccess(`Added timeline for ${yearsAgo} year(s) ago`);
+            const year = new Date().getFullYear() - yearsAgo;
+            this.showSuccess(`Added timeline for year ${year}`);
 
         } catch (error) {
             this.hideLoading();

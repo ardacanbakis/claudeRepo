@@ -131,17 +131,8 @@
                 </div>
 
                 <div class="modal-body settings-body">
-                    <!-- First Row: Language, Theme, Temperature Unit -->
+                    <!-- First Row: Theme, Language, Temperature Unit -->
                     <div class="settings-row-top">
-                        <div class="settings-section">
-                            <label>Language</label>
-                            <div class="btn-group">
-                                <button class="btn btn-view active" data-lang="en">English</button>
-                                <button class="btn btn-view" data-lang="tr">Türkçe</button>
-                                <button class="btn btn-view" data-lang="es">Español</button>
-                            </div>
-                        </div>
-
                         <div class="settings-section">
                             <label>Theme</label>
                             <div class="btn-group">
@@ -149,6 +140,16 @@
                                 <button class="btn btn-view" data-theme="dark">Dark</button>
                                 <button class="btn btn-view" data-theme="neon">Neon</button>
                                 <button class="btn btn-view" data-theme="forest">Forest</button>
+                                <button class="btn btn-view" data-theme="ocean">Ocean</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <label>Language</label>
+                            <div class="btn-group">
+                                <button class="btn btn-view active" data-lang="en">English</button>
+                                <button class="btn btn-view" data-lang="tr">Türkçe</button>
+                                <button class="btn btn-view" data-lang="es">Español</button>
                             </div>
                         </div>
 
@@ -264,7 +265,11 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <label for="yearsAgo">How many years back?</label>
+                    <label for="specificYear">Enter a specific year (optional):</label>
+                    <input type="number" id="specificYear" min="1940" max="2025" placeholder="e.g., 2020" />
+                    <p class="help-text">Leave empty to use "years back" option below</p>
+
+                    <label for="yearsAgo" style="margin-top: 1.5rem; display: block;">Or how many years back?</label>
                     <input type="number" id="yearsAgo" min="1" max="86" value="1" />
                     <p class="help-text">Choose between 1 and 86 years (data available from 1940)</p>
                 </div>
