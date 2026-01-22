@@ -36,6 +36,47 @@
     --overlay: rgba(0, 0, 0, 0.7);
 }
 
+/* Neon Theme */
+[data-theme="neon"] {
+    --primary-color: #FD00FF;
+    --primary-hover: #A500F3;
+    --secondary-color: #00B3FF;
+    --background: #0016FD;
+    --surface: #1a1a3e;
+    --text-primary: #E2FF4E;
+    --text-secondary: #00B3FF;
+    --border-color: #FD00FF;
+    --success: #E2FF4E;
+    --warning: #FD00FF;
+    --danger: #FF006E;
+    --shadow-sm: 0 1px 2px 0 rgba(253, 0, 255, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(253, 0, 255, 0.5), 0 2px 4px -1px rgba(0, 179, 255, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(253, 0, 255, 0.6), 0 4px 6px -2px rgba(226, 255, 78, 0.3);
+    --overlay: rgba(0, 22, 253, 0.85);
+}
+
+[data-theme="neon"] body {
+    background: linear-gradient(135deg, #0016FD 0%, #A500F3 100%);
+}
+
+[data-theme="neon"] .timeline-item {
+    box-shadow: 0 0 10px rgba(253, 0, 255, 0.5);
+    border-color: #FD00FF;
+}
+
+[data-theme="neon"] .timeline-item:hover {
+    box-shadow: 0 0 20px rgba(253, 0, 255, 0.8), 0 0 30px rgba(0, 179, 255, 0.5);
+}
+
+[data-theme="neon"] .btn-primary {
+    background: linear-gradient(135deg, #FD00FF, #A500F3);
+    box-shadow: 0 0 15px rgba(253, 0, 255, 0.6);
+}
+
+[data-theme="neon"] .btn-primary:hover {
+    box-shadow: 0 0 25px rgba(253, 0, 255, 0.9);
+}
+
 /* System Theme - Auto-detect based on user preference */
 @media (prefers-color-scheme: dark) {
     [data-theme="system"] {
@@ -447,10 +488,10 @@ body {
 
 /* Settings Modal */
 .settings-modal-content {
-    max-width: 95% !important;
+    max-width: 60% !important;
     max-height: 90vh;
     overflow-y: auto;
-    width: 95%;
+    width: 60%;
 }
 
 .settings-body {
@@ -1277,13 +1318,13 @@ body {
     grid-template-columns: auto 1fr;
     gap: 1rem;
     min-width: max-content;
-    align-items: start;
+    align-items: center;
 }
 
 /* Timeline Row Header (sticky on left) */
 .timeline-row-header {
     position: sticky;
-    left: 0;
+    left: 1rem;
     z-index: 10;
     background: var(--surface);
     display: flex;
@@ -1295,6 +1336,7 @@ body {
     min-width: 280px;
     max-width: 280px;
     box-shadow: var(--shadow-sm);
+    margin-top: -10px;
 }
 
 .timeline-row-header h2 {
