@@ -47,6 +47,10 @@ const translations = {
         },
         weeklyAverage: 'Weekly Average',
         monthlyAverage: 'Monthly Average',
+        // View buttons
+        daily: 'Daily',
+        weekly: 'Weekly',
+        monthly: 'Monthly',
         // Welcome message
         welcomeTitle: 'Welcome to Weather Timeline!',
         welcomeSubtitle: 'Compare weather patterns across multiple years',
@@ -112,6 +116,10 @@ const translations = {
         },
         weeklyAverage: 'Haftalık Ortalama',
         monthlyAverage: 'Aylık Ortalama',
+        // View buttons
+        daily: 'Günlük',
+        weekly: 'Haftalık',
+        monthly: 'Aylık',
         // Welcome message
         welcomeTitle: 'Hava Durumu Zaman Çizelgesine Hoş Geldiniz!',
         welcomeSubtitle: 'Birden fazla yıl boyunca hava durumu modellerini karşılaştırın',
@@ -177,6 +185,10 @@ const translations = {
         },
         weeklyAverage: 'Promedio Semanal',
         monthlyAverage: 'Promedio Mensual',
+        // View buttons
+        daily: 'Diario',
+        weekly: 'Semanal',
+        monthly: 'Mensual',
         // Welcome message
         welcomeTitle: '¡Bienvenido a Weather Timeline!',
         welcomeSubtitle: 'Compara patrones climáticos a través de múltiples años',
@@ -347,6 +359,7 @@ class WeatherTimeline {
         this.footerLangDropdownMenu = document.getElementById('footerLangDropdownMenu');
         this.footerThemeToggleBtn = document.getElementById('footerThemeToggleBtn');
         this.footerLogo = document.querySelector('.footer-logo');
+        this.footerAppName = document.querySelector('.footer-app-name');
 
         // Settings
         this.settingsPanel = document.getElementById('settingsPanel');
@@ -431,6 +444,11 @@ class WeatherTimeline {
 
         // Footer - Logo (Scroll to top)
         this.footerLogo.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Footer - App Name (Scroll to top)
+        this.footerAppName.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
@@ -817,6 +835,14 @@ class WeatherTimeline {
 
         // Update search placeholder
         this.navbarSearch.placeholder = this.t('searchPlaceholder');
+
+        // Update view button text
+        this.viewBtns.forEach(btn => {
+            const view = btn.dataset.view;
+            if (view) {
+                btn.textContent = this.t(view);
+            }
+        });
 
         // Update welcome message and settings
         this.updateWelcomeMessageTranslations();
