@@ -77,6 +77,44 @@
     box-shadow: 0 0 25px rgba(253, 0, 255, 0.9);
 }
 
+/* Forest Green Theme */
+[data-theme="forest"] {
+    --primary-color: #4a6741;
+    --primary-hover: #3a5231;
+    --secondary-color: #6b7d6b;
+    --background: #e8ede8;
+    --surface: #f5f7f5;
+    --text-primary: #1a2e1a;
+    --text-secondary: #4a5a3a;
+    --border-color: #a8b5a8;
+    --success: #5c7a52;
+    --warning: #8b9a6b;
+    --danger: #7a5252;
+    --shadow-sm: 0 1px 2px 0 rgba(26, 46, 26, 0.08);
+    --shadow-md: 0 4px 6px -1px rgba(26, 46, 26, 0.15), 0 2px 4px -1px rgba(26, 46, 26, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(26, 46, 26, 0.2), 0 4px 6px -2px rgba(26, 46, 26, 0.1);
+    --overlay: rgba(26, 46, 26, 0.6);
+}
+
+[data-theme="forest"] body {
+    background: linear-gradient(135deg, #e8ede8 0%, #d4ddd4 100%);
+}
+
+[data-theme="forest"] .timeline-item {
+    border-color: #6b7d6b;
+    background: linear-gradient(135deg, rgba(168, 181, 168, 0.1) 0%, transparent 100%);
+}
+
+[data-theme="forest"] .timeline-item:hover {
+    box-shadow: 0 6px 12px rgba(74, 103, 65, 0.25);
+    border-color: #4a6741;
+}
+
+[data-theme="forest"] .navbar {
+    background: rgba(245, 247, 245, 0.95);
+    backdrop-filter: blur(10px);
+}
+
 /* System Theme - Auto-detect based on user preference */
 @media (prefers-color-scheme: dark) {
     [data-theme="system"] {
@@ -1314,29 +1352,25 @@ body {
 
 /* Timeline Row Container (header + track) */
 .timeline-row-container {
-    display: grid;
-    grid-template-columns: auto 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
     min-width: max-content;
-    align-items: center;
 }
 
-/* Timeline Row Header (sticky on left) */
+/* Timeline Row Header (centered above track) */
 .timeline-row-header {
-    position: sticky;
-    left: 1rem;
-    z-index: 10;
-    background: var(--surface);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    padding: 1rem;
+    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--surface);
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    min-width: 280px;
-    max-width: 280px;
     box-shadow: var(--shadow-sm);
-    margin-top: -10px;
+    align-self: center;
+    min-width: 320px;
 }
 
 .timeline-row-header h2 {
@@ -1345,8 +1379,8 @@ body {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    flex: 1;
+    gap: 0.5rem;
+    justify-content: center;
     margin: 0;
     line-height: 1.3;
 }
