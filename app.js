@@ -973,6 +973,48 @@ class WeatherTimeline {
         this.renderFavorites();
     }
 
+    // Quick add/remove favorite from autocomplete
+    quickAddFavorite(index, buttonElement) {
+        const result = this.autocompleteResults[index];
+
+        const favorite = {
+            name: result.name,
+            country: result.country,
+            lat: result.latitude,
+            lon: result.longitude
+        };
+
+        const favIndex = this.preferences.favorites.findIndex(
+            f => f.lat === favorite.lat && f.lon === favorite.lon
+        );
+
+        if (favIndex >= 0) {
+            // Remove from favorites
+            this.preferences.favorites.splice(favIndex, 1);
+            buttonElement.classList.remove('active');
+            buttonElement.title = 'Add to favorites';
+            buttonElement.querySelector('svg').setAttribute('fill', 'none');
+            this.showSuccess('Removed from favorites');
+        } else {
+            // Add to favorites
+            this.preferences.favorites.push(favorite);
+            buttonElement.classList.add('active');
+            buttonElement.title = 'Remove from favorites';
+            buttonElement.querySelector('svg').setAttribute('fill', 'currentColor');
+            this.showSuccess('Added to favorites');
+        }
+
+        this.savePreferences();
+        this.renderFavorites();
+
+        // Update current location favorite button if this is the current location
+        if (this.currentLocation &&
+            this.currentLocation.lat === favorite.lat &&
+            this.currentLocation.lon === favorite.lon) {
+            this.favoriteBtn.classList.toggle('active', favIndex < 0);
+        }
+    }
+
     renderFavorites() {
         // Render to settings panel (list view)
         if (this.preferences.favorites.length === 0) {
@@ -1131,15 +1173,27 @@ class WeatherTimeline {
         `;
 
         // Add search results
-        html += this.autocompleteResults.map((result, index) => `
-            <div class="autocomplete-item ${index === this.autocompleteSelectedIndex ? 'active' : ''}" data-index="${index}">
-                <div class="autocomplete-item-name">${result.name}</div>
-                <div class="autocomplete-item-details">
-                    ${result.admin1 ? result.admin1 + ', ' : ''}${result.country}
-                    ${result.population ? ' • ' + this.formatPopulation(result.population) : ''}
+        html += this.autocompleteResults.map((result, index) => {
+            const isFavorite = this.preferences.favorites.some(
+                f => f.lat === result.latitude && f.lon === result.longitude
+            );
+            return `
+                <div class="autocomplete-item ${index === this.autocompleteSelectedIndex ? 'active' : ''}" data-index="${index}">
+                    <div class="autocomplete-item-info">
+                        <div class="autocomplete-item-name">${result.name}</div>
+                        <div class="autocomplete-item-details">
+                            ${result.admin1 ? result.admin1 + ', ' : ''}${result.country}
+                            ${result.population ? ' • ' + this.formatPopulation(result.population) : ''}
+                        </div>
+                    </div>
+                    <button class="autocomplete-star-btn ${isFavorite ? 'active' : ''}" data-index="${index}" title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                    </button>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         this.navbarAutocomplete.innerHTML = html;
         this.navbarAutocomplete.style.display = 'block';
@@ -1155,7 +1209,10 @@ class WeatherTimeline {
 
         // Add click handlers for search results
         document.querySelectorAll('.autocomplete-item[data-index]').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                // Don't select city if clicking the star button
+                if (e.target.closest('.autocomplete-star-btn')) return;
+
                 const index = parseInt(item.dataset.index);
                 if (!isNaN(index)) {
                     this.selectNavbarAutocompleteItem(index);
@@ -1168,6 +1225,17 @@ class WeatherTimeline {
                 if (!isNaN(index)) {
                     this.autocompleteSelectedIndex = index;
                     this.updateNavbarAutocompleteSelection();
+                }
+            });
+        });
+
+        // Add click handlers for star buttons
+        document.querySelectorAll('.autocomplete-star-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const index = parseInt(btn.dataset.index);
+                if (!isNaN(index)) {
+                    this.quickAddFavorite(index, btn);
                 }
             });
         });
