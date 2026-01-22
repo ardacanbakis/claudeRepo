@@ -47,6 +47,7 @@ const translations = {
         },
         weeklyAverage: 'Weekly Average',
         monthlyAverage: 'Monthly Average',
+        vsCurrent: 'vs current',
         // View buttons
         daily: 'Daily',
         weekly: 'Weekly',
@@ -115,6 +116,7 @@ const translations = {
         },
         weeklyAverage: 'Haftalık Ortalama',
         monthlyAverage: 'Aylık Ortalama',
+        vsCurrent: 'şu ankine göre',
         // View buttons
         daily: 'Günlük',
         weekly: 'Haftalık',
@@ -183,6 +185,7 @@ const translations = {
         },
         weeklyAverage: 'Promedio Semanal',
         monthlyAverage: 'Promedio Mensual',
+        vsCurrent: 'vs actual',
         // View buttons
         daily: 'Diario',
         weekly: 'Semanal',
@@ -621,6 +624,9 @@ class WeatherTimeline {
         this.yearsAgoInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.addTimeline();
         });
+        this.specificYearInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addTimeline();
+        });
 
         // Close add timeline modal on background click
         this.addTimelineModal.addEventListener('click', (e) => {
@@ -716,7 +722,7 @@ class WeatherTimeline {
     }
 
     cycleTheme() {
-        const themes = ['light', 'dark', 'neon', 'forest', 'ocean'];
+        const themes = ['light', 'dark', 'neon', 'forest', 'ocean', 'matrix', 'sunset', 'midnight'];
         const currentIndex = themes.indexOf(this.preferences.theme);
         const nextIndex = (currentIndex + 1) % themes.length;
         this.changeTheme(themes[nextIndex]);
@@ -2067,7 +2073,7 @@ class WeatherTimeline {
             const diffSign = diff > 0 ? '+' : '';
             comparisonHTML = `
                 <div class="temp-difference ${diffClass}">
-                    ${diffSign}${diff}${unit} vs current
+                    ${diffSign}${diff}${unit} ${this.t('vsCurrent')}
                 </div>
             `;
         }
