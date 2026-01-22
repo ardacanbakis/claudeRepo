@@ -113,6 +113,12 @@ body {
 .app-logo {
     display: flex;
     align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.app-logo:hover {
+    transform: scale(1.05);
 }
 
 .app-name {
@@ -911,14 +917,16 @@ body {
 
 .controls-split {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 35% 65%;
     gap: 1.5rem;
     align-items: start;
 }
 
 .view-controls {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.75rem;
 }
 
@@ -931,6 +939,8 @@ body {
 .favorites-section {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
 }
 
@@ -949,6 +959,7 @@ body {
     background: var(--background);
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    width: 100%;
 }
 
 .empty-favorites {
@@ -1022,7 +1033,7 @@ body {
 /* Timeline Section */
 .timeline-section {
     background: var(--surface);
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: var(--shadow-md);
     position: relative;
@@ -1032,7 +1043,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     padding-bottom: 1rem;
     border-bottom: 2px solid var(--border-color);
 }
@@ -1082,14 +1093,11 @@ body {
 }
 
 .timeline-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
     position: relative;
 }
 
 .timeline-scroll {
-    flex: 1;
+    width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-behavior: smooth;
@@ -1220,12 +1228,16 @@ body {
 /* Remove Timeline Button */
 .remove-timeline-btn {
     position: absolute;
-    top: 1rem;
+    bottom: 1rem;
     right: 1rem;
+    z-index: 10;
 }
 
 /* Scroll Buttons */
 .scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     background: var(--surface);
     border: 2px solid var(--border-color);
     border-radius: 50%;
@@ -1236,17 +1248,29 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    flex-shrink: 0;
+    z-index: 10;
+    box-shadow: var(--shadow-md);
+    opacity: 0.9;
 }
 
 .scroll-btn:hover {
     background: var(--primary-color);
     border-color: var(--primary-color);
     color: white;
+    opacity: 1;
+    box-shadow: var(--shadow-lg);
 }
 
 .scroll-btn svg {
     stroke: currentColor;
+}
+
+.scroll-left {
+    left: 1rem;
+}
+
+.scroll-right {
+    right: 1rem;
 }
 
 /* Modal */

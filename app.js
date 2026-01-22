@@ -259,6 +259,7 @@ class WeatherTimeline {
     // Setup DOM elements
     setupElements() {
         // Navbar elements
+        this.appLogo = document.querySelector('.app-logo');
         this.navbarSearch = document.getElementById('navbarSearch');
         this.navHelpBtn = document.getElementById('navHelpBtn');
         this.navSettingsBtn = document.getElementById('navSettingsBtn');
@@ -319,6 +320,11 @@ class WeatherTimeline {
 
     // Setup event listeners
     setupEventListeners() {
+        // Logo - Scroll to top
+        this.appLogo.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
         // Navbar - Settings
         this.navSettingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
