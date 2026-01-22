@@ -930,18 +930,6 @@ class WeatherTimeline {
         icon.classList.toggle('rotated');
     }
 
-    toggleControls() {
-        this.controlsContent.classList.toggle('collapsed');
-        const icon = this.toggleControlsBtn.querySelector('.collapse-icon');
-        icon.classList.toggle('rotated');
-    }
-
-    collapseControls() {
-        this.controlsContent.classList.add('collapsed');
-        const icon = this.toggleControlsBtn.querySelector('.collapse-icon');
-        icon.classList.add('rotated');
-    }
-
     // Favorites management
     toggleFavorite() {
         if (!this.currentLocation) return;
@@ -1403,7 +1391,6 @@ class WeatherTimeline {
     // Load weather data for all timelines
     async loadWeatherData(lat, lon, cityName = null, country = null) {
         this.showLoading();
-        this.collapseControls();
 
         try {
             // If city name not provided, try to get it from coordinates
