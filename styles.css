@@ -447,7 +447,7 @@ body {
 
 /* Settings Modal */
 .settings-modal-content {
-    max-width: 85%;
+    max-width: 95%;
     max-height: 90vh;
     overflow-y: auto;
 }
