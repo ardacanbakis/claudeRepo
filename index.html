@@ -8,31 +8,100 @@
     <meta name="description" content="Compare weather patterns across multiple years with real historical data">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1>Weather Timeline</h1>
-                    <p class="subtitle">Compare weather patterns across years</p>
+    <!-- Fixed Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <!-- Left: Logo + App Name -->
+            <div class="navbar-left">
+                <div class="app-logo">
+                    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                        <defs>
+                            <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="48" height="48" rx="10" fill="url(#skyGradient)"/>
+                        <circle cx="18" cy="16" r="8" fill="#FCD34D"/>
+                        <path d="M20 22 C20 22, 25 20, 30 22 C35 24, 38 26, 38 30 C38 34, 35 36, 30 36 L18 36 C13 36, 10 34, 10 30 C10 26, 13 24, 18 24 C18 24, 19 23, 20 22 Z" fill="#F0F9FF"/>
+                    </svg>
                 </div>
-                <div class="header-controls">
-                    <button id="helpBtn" class="btn btn-icon" title="Keyboard Shortcuts (?)" aria-label="Help">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                <span class="app-name">Weather Timeline</span>
+            </div>
+
+            <!-- Center: Merged Search/Location Bar -->
+            <div class="navbar-center">
+                <div class="merged-search">
+                    <input type="text" id="navbarSearch" placeholder="Search for a city..." autocomplete="off" />
+                    <button id="favoriteBtn" class="btn btn-icon favorite-btn" style="display: none;" title="Add to favorites">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
                         </svg>
                     </button>
-                    <button id="settingsBtn" class="btn btn-icon" title="Settings" aria-label="Settings">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 2v2m0 16v2M6.34 6.34l-1.42-1.42M19.08 19.08l-1.42-1.42M2 12h2m16 0h2M6.34 17.66l-1.42 1.42M19.08 4.92l-1.42 1.42"></path>
+                    <button id="clearSearchBtn" class="clear-search-btn" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
                         </svg>
                     </button>
+                    <div id="navbarAutocomplete" class="navbar-autocomplete" style="display: none;"></div>
                 </div>
             </div>
-        </header>
+
+            <!-- Right: Help, Theme, Language, Settings -->
+            <div class="navbar-right">
+                <button id="navHelpBtn" class="btn btn-icon navbar-icon" title="Keyboard Shortcuts (?)" aria-label="Help">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+
+                <div class="theme-selector navbar-theme">
+                    <button class="btn btn-icon navbar-icon" data-theme="light" title="Light">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </button>
+                    <button class="btn btn-icon navbar-icon active" data-theme="system" title="System">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </button>
+                    <button class="btn btn-icon navbar-icon" data-theme="dark" title="Dark">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="language-selector navbar-lang">
+                    <button class="btn btn-text navbar-lang-btn active" data-lang="en">EN</button>
+                    <button class="btn btn-text navbar-lang-btn" data-lang="tr">TR</button>
+                    <button class="btn btn-text navbar-lang-btn" data-lang="es">ES</button>
+                </div>
+
+                <button id="navSettingsBtn" class="btn btn-icon navbar-icon" title="Settings" aria-label="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 2v2m0 16v2M6.34 6.34l-1.42-1.42M19.08 19.08l-1.42-1.42M2 12h2m16 0h2M6.34 17.66l-1.42 1.42M19.08 4.92l-1.42 1.42"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
 
         <!-- Settings Panel -->
         <div id="settingsPanel" class="settings-panel" style="display: none;">
@@ -77,10 +146,13 @@
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="controls">
+        <!-- Timeline Container -->
+        <div id="timelinesWrapper" class="timelines-wrapper"></div>
+
+        <!-- Controls (Below Timelines) -->
+        <div id="timelineControls" class="timeline-controls" style="display: none;">
             <div class="controls-header">
-                <h3>Search & Favorites</h3>
+                <h3>Options & Favorites</h3>
                 <button id="toggleControlsBtn" class="btn btn-icon" title="Collapse/Expand">
                     <svg class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 9l-7 7-7-7"></path>
@@ -89,36 +161,46 @@
             </div>
 
             <div id="controlsContent" class="controls-content">
-                <div class="controls-split">
-                    <!-- Left: Search Controls -->
-                    <div class="controls-left">
-                        <div class="location-controls">
-                            <button id="geolocationBtn" class="btn btn-primary">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2v20M2 12h20"></path>
-                                    <circle cx="12" cy="12" r="7"></circle>
-                                </svg>
-                                <span class="btn-text">Use My Location</span>
-                            </button>
-                            <div class="search-box">
-                                <input type="text" id="citySearch" placeholder="Search for a city..." autocomplete="off" />
-                                <div id="searchAutocomplete" class="search-autocomplete" style="display: none;"></div>
-                                <button id="searchBtn" class="btn btn-secondary">Search</button>
-                            </div>
-                        </div>
+                <!-- Row 1: Timeline Actions -->
+                <div class="timeline-actions">
+                    <button id="addTimelineBtn" class="btn btn-outline">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14m-7-7h14"></path>
+                        </svg>
+                        Add Comparison Year
+                    </button>
+                    <button id="jumpToDateBtn" class="btn btn-outline">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span class="btn-text">Jump to Date</span>
+                    </button>
+                    <button id="syncScrollBtn" class="btn btn-outline active" title="Synchronized scrolling">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6"></path>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span class="btn-text">Sync Scroll</span>
+                    </button>
+                </div>
 
-                        <div class="view-controls">
-                            <label>View:</label>
-                            <div class="btn-group">
-                                <button class="btn btn-view active" data-view="daily">Daily</button>
-                                <button class="btn btn-view" data-view="weekly">Weekly</button>
-                                <button class="btn btn-view" data-view="monthly">Monthly</button>
-                            </div>
+                <!-- Row 2: View + Favorites -->
+                <div class="controls-split">
+                    <!-- Left: View Controls -->
+                    <div class="view-controls">
+                        <label>View:</label>
+                        <div class="btn-group">
+                            <button class="btn btn-view active" data-view="daily">Daily</button>
+                            <button class="btn btn-view" data-view="weekly">Weekly</button>
+                            <button class="btn btn-view" data-view="monthly">Monthly</button>
                         </div>
                     </div>
 
                     <!-- Right: Favorites -->
-                    <div class="controls-right">
+                    <div class="favorites-section">
                         <label>Quick Access:</label>
                         <div id="favoritesBoxes" class="favorites-boxes">
                             <p class="empty-favorites">No favorites yet. Search and star locations!</p>
@@ -127,49 +209,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Location Display -->
-        <div id="locationDisplay" class="location-display">
-            <div class="location-info">
-                <span id="currentLocation">Select a location to view weather data</span>
-                <button id="favoriteBtn" class="btn btn-icon favorite-btn" style="display: none;" title="Add to favorites">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Timeline Controls -->
-        <div id="timelineControls" class="timeline-controls" style="display: none;">
-            <div class="timeline-actions">
-                <button id="addTimelineBtn" class="btn btn-outline">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14m-7-7h14"></path>
-                    </svg>
-                    Add Comparison Year
-                </button>
-                <button id="jumpToDateBtn" class="btn btn-outline">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span class="btn-text">Jump to Date</span>
-                </button>
-                <button id="syncScrollBtn" class="btn btn-outline active" title="Synchronized scrolling">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M23 4v6h-6M1 20v-6h6"></path>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                    </svg>
-                    <span class="btn-text">Sync Scroll</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Timeline Container -->
-        <div id="timelinesWrapper" class="timelines-wrapper"></div>
 
         <!-- Add Timeline Modal -->
         <div id="addTimelineModal" class="modal" style="display: none;">

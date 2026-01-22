@@ -76,9 +76,14 @@ class WeatherTimeline {
 
     // Setup DOM elements
     setupElements() {
+        // Navbar elements
+        this.navbarSearch = document.getElementById('navbarSearch');
+        this.navHelpBtn = document.getElementById('navHelpBtn');
+        this.navSettingsBtn = document.getElementById('navSettingsBtn');
+        this.clearSearchBtn = document.getElementById('clearSearchBtn');
+        this.navbarAutocomplete = document.getElementById('navbarAutocomplete');
+
         // Settings
-        this.settingsBtn = document.getElementById('settingsBtn');
-        this.helpBtn = document.getElementById('helpBtn');
         this.settingsPanel = document.getElementById('settingsPanel');
         this.closeSettingsBtn = document.getElementById('closeSettings');
         this.favoritesList = document.getElementById('favoritesList');
@@ -88,14 +93,9 @@ class WeatherTimeline {
         this.toggleControlsBtn = document.getElementById('toggleControlsBtn');
         this.controlsContent = document.getElementById('controlsContent');
         this.favoritesBoxes = document.getElementById('favoritesBoxes');
-        this.geolocationBtn = document.getElementById('geolocationBtn');
-        this.citySearch = document.getElementById('citySearch');
-        this.searchBtn = document.getElementById('searchBtn');
-        this.searchAutocomplete = document.getElementById('searchAutocomplete');
         this.viewBtns = document.querySelectorAll('.btn-view[data-view]');
 
         // Display
-        this.locationDisplay = document.getElementById('currentLocation');
         this.favoriteBtn = document.getElementById('favoriteBtn');
         this.timelineControls = document.getElementById('timelineControls');
         this.timelinesWrapper = document.getElementById('timelinesWrapper');
@@ -134,16 +134,38 @@ class WeatherTimeline {
 
     // Setup event listeners
     setupEventListeners() {
-        // Settings
-        this.settingsBtn.addEventListener('click', (e) => {
+        // Navbar - Settings
+        this.navSettingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.openSettings();
         });
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
 
-        // Help
-        this.helpBtn.addEventListener('click', () => this.openKeyboardHelp());
+        // Navbar - Help
+        this.navHelpBtn.addEventListener('click', () => this.openKeyboardHelp());
         this.closeKeyboardHelp.addEventListener('click', () => this.closeKeyboardHelpModal());
+
+        // Navbar - Search
+        this.navbarSearch.addEventListener('input', (e) => this.handleNavbarSearchInput(e.target.value));
+        this.navbarSearch.addEventListener('keydown', (e) => this.handleNavbarSearchKeydown(e));
+        this.navbarSearch.addEventListener('focus', () => {
+            if (this.navbarSearch.value.length >= 2 && this.autocompleteResults.length > 0) {
+                this.showNavbarAutocomplete();
+            }
+        });
+        this.navbarSearch.addEventListener('blur', () => {
+            // Delay hiding to allow click on autocomplete item
+            setTimeout(() => this.hideNavbarAutocomplete(), 200);
+        });
+        this.navbarSearch.addEventListener('click', () => {
+            // Select text when clicking on a selected location
+            if (this.currentLocation) {
+                this.navbarSearch.select();
+            }
+        });
+
+        // Clear search button
+        this.clearSearchBtn.addEventListener('click', () => this.clearSearch());
 
         // Toggle controls
         this.toggleControlsBtn.addEventListener('click', () => this.toggleControls());
@@ -176,19 +198,14 @@ class WeatherTimeline {
             });
         });
 
-        // Location
-        this.geolocationBtn.addEventListener('click', () => this.useGeolocation());
-        this.searchBtn.addEventListener('click', () => this.searchCity());
-        this.citySearch.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
-        this.citySearch.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
-        this.citySearch.addEventListener('focus', () => {
-            if (this.citySearch.value.length >= 2 && this.autocompleteResults.length > 0) {
-                this.showAutocomplete();
-            }
-        });
-        this.citySearch.addEventListener('blur', () => {
-            // Delay hiding to allow click on autocomplete item
-            setTimeout(() => this.hideAutocomplete(), 200);
+        // Language selector buttons
+        document.querySelectorAll('.navbar-lang-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = e.currentTarget.dataset.lang;
+                if (lang) {
+                    this.changeLanguage(lang);
+                }
+            });
         });
 
         // Favorite button
@@ -259,8 +276,8 @@ class WeatherTimeline {
         document.addEventListener('click', (e) => {
             if (this.settingsPanel.style.display === 'block' &&
                 !this.settingsPanel.contains(e.target) &&
-                e.target !== this.settingsBtn &&
-                !this.settingsBtn.contains(e.target)) {
+                e.target !== this.navSettingsBtn &&
+                !this.navSettingsBtn.contains(e.target)) {
                 this.closeSettings();
             }
         });
@@ -284,8 +301,8 @@ class WeatherTimeline {
                     this.closeKeyboardHelpModal();
                 } else if (this.settingsPanel.style.display === 'block') {
                     this.closeSettings();
-                } else if (this.searchAutocomplete.style.display === 'block') {
-                    this.hideAutocomplete();
+                } else if (this.navbarAutocomplete.style.display === 'block') {
+                    this.hideNavbarAutocomplete();
                 }
             }
 
@@ -371,6 +388,18 @@ class WeatherTimeline {
         if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
             this.renderAllTimelines();
         }
+    }
+
+    // Language management
+    changeLanguage(lang) {
+        // Update active state on language buttons
+        document.querySelectorAll('.navbar-lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        // Note: Full language implementation would require translations
+        // For now, just update the UI state
+        this.showSuccess(`Language changed to ${lang.toUpperCase()}`);
     }
 
     // Convert temperature
@@ -549,19 +578,23 @@ class WeatherTimeline {
         }
     }
 
-    // Search autocomplete - Optimized
-    async handleSearchInput(query) {
+    // Navbar search autocomplete - Optimized
+    async handleNavbarSearchInput(query) {
         clearTimeout(this.autocompleteTimeout);
         this.autocompleteSelectedIndex = -1;
 
         if (query.length < 2) {
-            this.hideAutocomplete();
+            this.hideNavbarAutocomplete();
+            this.clearSearchBtn.style.display = 'none';
             return;
         }
 
+        // Show clear button
+        this.clearSearchBtn.style.display = 'block';
+
         // Show loading state
-        this.searchAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">Searching...</div></div>';
-        this.searchAutocomplete.style.display = 'block';
+        this.navbarAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">Searching...</div></div>';
+        this.navbarAutocomplete.style.display = 'block';
 
         this.autocompleteTimeout = setTimeout(async () => {
             try {
@@ -571,19 +604,28 @@ class WeatherTimeline {
 
                 if (data.results && data.results.length > 0) {
                     this.autocompleteResults = data.results;
-                    this.showAutocomplete();
+                    this.showNavbarAutocomplete();
                 } else {
-                    this.searchAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No results found</div></div>';
+                    this.navbarAutocomplete.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-name">No results found</div></div>';
                 }
             } catch (error) {
                 console.error('Autocomplete error:', error);
-                this.hideAutocomplete();
+                this.hideNavbarAutocomplete();
             }
         }, 250); // Reduced debounce to 250ms for faster response
     }
 
-    showAutocomplete() {
-        this.searchAutocomplete.innerHTML = this.autocompleteResults.map((result, index) => `
+    showNavbarAutocomplete() {
+        // Add "Use My Location" option at the top
+        let html = `
+            <div class="autocomplete-item use-location-item" data-action="geolocation">
+                <div class="autocomplete-item-name">📍 Use My Location</div>
+                <div class="autocomplete-item-details">Get weather for your current position</div>
+            </div>
+        `;
+
+        // Add search results
+        html += this.autocompleteResults.map((result, index) => `
             <div class="autocomplete-item ${index === this.autocompleteSelectedIndex ? 'active' : ''}" data-index="${index}">
                 <div class="autocomplete-item-name">${result.name}</div>
                 <div class="autocomplete-item-details">
@@ -593,14 +635,24 @@ class WeatherTimeline {
             </div>
         `).join('');
 
-        this.searchAutocomplete.style.display = 'block';
+        this.navbarAutocomplete.innerHTML = html;
+        this.navbarAutocomplete.style.display = 'block';
 
-        // Add click handlers
-        document.querySelectorAll('.autocomplete-item').forEach(item => {
+        // Add click handler for "Use My Location"
+        const geolocationItem = this.navbarAutocomplete.querySelector('[data-action="geolocation"]');
+        if (geolocationItem) {
+            geolocationItem.addEventListener('click', () => {
+                this.useGeolocation();
+                this.hideNavbarAutocomplete();
+            });
+        }
+
+        // Add click handlers for search results
+        document.querySelectorAll('.autocomplete-item[data-index]').forEach(item => {
             item.addEventListener('click', () => {
                 const index = parseInt(item.dataset.index);
                 if (!isNaN(index)) {
-                    this.selectAutocompleteItem(index);
+                    this.selectNavbarAutocompleteItem(index);
                 }
             });
 
@@ -609,7 +661,7 @@ class WeatherTimeline {
                 const index = parseInt(item.dataset.index);
                 if (!isNaN(index)) {
                     this.autocompleteSelectedIndex = index;
-                    this.updateAutocompleteSelection();
+                    this.updateNavbarAutocompleteSelection();
                 }
             });
         });
@@ -624,26 +676,25 @@ class WeatherTimeline {
         return pop.toString();
     }
 
-    updateAutocompleteSelection() {
-        document.querySelectorAll('.autocomplete-item').forEach((item, index) => {
+    updateNavbarAutocompleteSelection() {
+        document.querySelectorAll('.autocomplete-item[data-index]').forEach((item, index) => {
             item.classList.toggle('active', index === this.autocompleteSelectedIndex);
         });
     }
 
-    hideAutocomplete() {
-        this.searchAutocomplete.style.display = 'none';
+    hideNavbarAutocomplete() {
+        this.navbarAutocomplete.style.display = 'none';
         this.autocompleteSelectedIndex = -1;
     }
 
-    selectAutocompleteItem(index) {
+    selectNavbarAutocompleteItem(index) {
         const result = this.autocompleteResults[index];
-        this.citySearch.value = result.name;
-        this.hideAutocomplete();
+        this.hideNavbarAutocomplete();
         this.loadWeatherData(result.latitude, result.longitude, result.name, result.country);
     }
 
-    handleSearchKeydown(e) {
-        const isAutocompleteVisible = this.searchAutocomplete.style.display === 'block' &&
+    handleNavbarSearchKeydown(e) {
+        const isAutocompleteVisible = this.navbarAutocomplete.style.display === 'block' &&
                                       this.autocompleteResults.length > 0;
 
         if (e.key === 'Enter') {
@@ -651,19 +702,20 @@ class WeatherTimeline {
             if (isAutocompleteVisible) {
                 // Select first result if no selection made, otherwise use selected index
                 const indexToSelect = this.autocompleteSelectedIndex >= 0 ? this.autocompleteSelectedIndex : 0;
-                this.selectAutocompleteItem(indexToSelect);
-            } else {
-                this.searchCity();
+                this.selectNavbarAutocompleteItem(indexToSelect);
+            } else if (this.navbarSearch.value.trim()) {
+                // Search for the typed city name
+                this.searchCity(this.navbarSearch.value.trim());
             }
         } else if (e.key === 'Escape') {
-            this.hideAutocomplete();
+            this.hideNavbarAutocomplete();
         } else if (e.key === 'ArrowDown' && isAutocompleteVisible) {
             e.preventDefault();
             this.autocompleteSelectedIndex = Math.min(
                 this.autocompleteSelectedIndex + 1,
                 this.autocompleteResults.length - 1
             );
-            this.updateAutocompleteSelection();
+            this.updateNavbarAutocompleteSelection();
             // Scroll into view
             const activeItem = document.querySelector('.autocomplete-item.active');
             if (activeItem) {
@@ -672,13 +724,24 @@ class WeatherTimeline {
         } else if (e.key === 'ArrowUp' && isAutocompleteVisible) {
             e.preventDefault();
             this.autocompleteSelectedIndex = Math.max(this.autocompleteSelectedIndex - 1, 0);
-            this.updateAutocompleteSelection();
+            this.updateNavbarAutocompleteSelection();
             // Scroll into view
             const activeItem = document.querySelector('.autocomplete-item.active');
             if (activeItem) {
                 activeItem.scrollIntoView({ block: 'nearest' });
             }
         }
+    }
+
+    clearSearch() {
+        this.navbarSearch.value = '';
+        this.clearSearchBtn.style.display = 'none';
+        this.favoriteBtn.style.display = 'none';
+        this.hideNavbarAutocomplete();
+        this.currentLocation = null;
+        this.timelineControls.style.display = 'none';
+        this.timelinesWrapper.style.display = 'none';
+        this.navbarSearch.placeholder = 'Search for a city...';
     }
 
     // Geolocation
@@ -730,15 +793,18 @@ class WeatherTimeline {
     }
 
     // City search
-    async searchCity() {
-        const cityName = this.citySearch.value.trim();
+    async searchCity(cityName = null) {
+        if (!cityName) {
+            cityName = this.navbarSearch.value.trim();
+        }
+
         if (!cityName) {
             this.showError('Please enter a city name');
             return;
         }
 
         this.showLoading();
-        this.hideAutocomplete();
+        this.hideNavbarAutocomplete();
 
         try {
             const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
@@ -1040,20 +1106,25 @@ class WeatherTimeline {
         const scrollContainers = document.querySelectorAll('.timeline-scroll');
 
         scrollContainers.forEach(container => {
-            let scrollTarget;
+            let scrollBackAmount;
 
             if (this.currentView === 'daily') {
                 // Each day is approximately 150px wide
-                scrollTarget = daysBack * 150;
+                scrollBackAmount = daysBack * 150;
             } else if (this.currentView === 'weekly') {
                 // Each week is approximately 150px wide
                 const weeksBack = Math.floor(daysBack / 7);
-                scrollTarget = weeksBack * 150;
+                scrollBackAmount = weeksBack * 150;
             } else if (this.currentView === 'monthly') {
                 // Each month is approximately 150px wide
                 const monthsBack = Math.floor(daysBack / 30);
-                scrollTarget = monthsBack * 150;
+                scrollBackAmount = monthsBack * 150;
             }
+
+            // Calculate scroll position from the right (today is at the right)
+            // scrollWidth - clientWidth gives us the maximum scrollLeft value (rightmost position)
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            const scrollTarget = Math.max(0, maxScroll - scrollBackAmount);
 
             // Smooth scroll to target
             container.scrollTo({
@@ -1415,10 +1486,11 @@ class WeatherTimeline {
     // UI helpers
     updateLocationDisplay() {
         const countryText = this.currentLocation.country ? `, ${this.currentLocation.country}` : '';
-        this.locationDisplay.textContent = `${this.currentLocation.name}${countryText}`;
+        this.navbarSearch.value = `${this.currentLocation.name}${countryText}`;
 
-        // Show favorite button
+        // Show favorite and clear buttons
         this.favoriteBtn.style.display = 'inline-flex';
+        this.clearSearchBtn.style.display = 'block';
 
         // Update favorite button state
         const isFavorite = this.preferences.favorites.some(
