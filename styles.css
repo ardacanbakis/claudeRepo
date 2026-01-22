@@ -441,7 +441,7 @@ body {
 
 /* Settings Modal */
 .settings-modal-content {
-    max-width: 600px;
+    max-width: 1200px;
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -449,6 +449,23 @@ body {
 .settings-body {
     max-height: calc(90vh - 150px);
     overflow-y: auto;
+}
+
+.settings-row-top {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.settings-row-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.settings-section-half {
+    min-height: 200px;
 }
 
 .settings-section {
@@ -1814,6 +1831,42 @@ body {
 
     .footer-center p {
         font-size: 0.8rem;
+    }
+
+    /* Settings Modal - Mobile */
+    .settings-modal-content {
+        max-width: 100%;
+        margin: 1rem;
+    }
+
+    .settings-row-top,
+    .settings-row-bottom {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Keyboard shortcuts collapsed by default on mobile */
+    #keyboardShortcutsList {
+        max-height: 0;
+        opacity: 0;
+    }
+
+    #keyboardShortcutsHeader .collapse-icon {
+        transform: rotate(0deg);
+    }
+
+    .navbar-center {
+        flex: 1;
+        margin: 0 0.5rem;
+    }
+
+    .merged-search input {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.5rem;
+    }
+
+    .theme-selector {
+        display: none;
     }
 
     .header h1 {

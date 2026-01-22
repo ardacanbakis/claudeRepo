@@ -131,51 +131,56 @@
                 </div>
 
                 <div class="modal-body settings-body">
-                    <div class="settings-section">
-                    <label>Theme</label>
-                    <div class="btn-group">
-                        <button class="btn btn-view active" data-theme="light">Light</button>
-                        <button class="btn btn-view" data-theme="dark">Dark</button>
-                    </div>
-                </div>
+                    <!-- First Row: Language, Theme, Temperature Unit -->
+                    <div class="settings-row-top">
+                        <div class="settings-section">
+                            <label>Language</label>
+                            <div class="btn-group">
+                                <button class="btn btn-view active" data-lang="en">English</button>
+                                <button class="btn btn-view" data-lang="tr">Türkçe</button>
+                                <button class="btn btn-view" data-lang="es">Español</button>
+                            </div>
+                        </div>
 
-                <div class="settings-section">
-                    <label>Language</label>
-                    <div class="btn-group">
-                        <button class="btn btn-view active" data-lang="en">English</button>
-                        <button class="btn btn-view" data-lang="tr">Türkçe</button>
-                        <button class="btn btn-view" data-lang="es">Español</button>
-                    </div>
-                </div>
+                        <div class="settings-section">
+                            <label>Theme</label>
+                            <div class="btn-group">
+                                <button class="btn btn-view active" data-theme="light">Light</button>
+                                <button class="btn btn-view" data-theme="dark">Dark</button>
+                            </div>
+                        </div>
 
-                <div class="settings-section">
-                    <label>Temperature Unit</label>
-                    <div class="btn-group">
-                        <button class="btn btn-view active" data-unit="celsius">°C</button>
-                        <button class="btn btn-view" data-unit="fahrenheit">°F</button>
+                        <div class="settings-section">
+                            <label>Temperature Unit</label>
+                            <div class="btn-group">
+                                <button class="btn btn-view active" data-unit="celsius">°C</button>
+                                <button class="btn btn-view" data-unit="fahrenheit">°F</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="settings-section">
-                    <div class="collapsable-header" id="favoritesHeader">
-                        <h4>Favorite Locations</h4>
-                        <svg class="collapse-icon rotated" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </div>
-                    <div id="favoritesList" class="favorites-list">
-                        <p class="empty-state">No favorites yet. Search for a city and click the star!</p>
-                    </div>
-                </div>
+                    <!-- Second Row: Favorites and Keyboard Shortcuts -->
+                    <div class="settings-row-bottom">
+                        <div class="settings-section settings-section-half">
+                            <div class="collapsable-header" id="favoritesHeader">
+                                <h4>Favorite Locations</h4>
+                                <svg class="collapse-icon rotated" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div id="favoritesList" class="favorites-list">
+                                <p class="empty-state">No favorites yet. Search for a city and click the star!</p>
+                            </div>
+                        </div>
 
-                <div class="settings-section">
-                    <div class="collapsable-header" id="keyboardShortcutsHeader">
-                        <h4>Keyboard Shortcuts</h4>
-                        <svg class="collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </div>
-                    <div id="keyboardShortcutsList" class="keyboard-shortcuts-list collapsed">
+                        <div class="settings-section settings-section-half">
+                            <div class="collapsable-header" id="keyboardShortcutsHeader">
+                                <h4>Keyboard Shortcuts</h4>
+                                <svg class="collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div id="keyboardShortcutsList" class="keyboard-shortcuts-list collapsed">
                         <div class="shortcut-item">
                             <kbd>ESC</kbd>
                             <span>Close modals, settings, or autocomplete</span>
@@ -197,7 +202,8 @@
                             <span>Toggle temperature unit (°C ↔ °F)</span>
                         </div>
                     </div>
-                </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
