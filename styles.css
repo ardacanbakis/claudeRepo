@@ -70,12 +70,16 @@ body {
     line-height: 1.6;
     transition: background-color 0.3s, color 0.3s;
     padding-top: 70px; /* Space for fixed navbar */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 1rem 2rem 2rem;
+    flex: 1;
 }
 
 /* Fixed Navbar */
@@ -326,6 +330,85 @@ body {
     font-weight: 600;
 }
 
+/* Favorites Dropdown (Navbar) */
+.favorites-icon-container {
+    position: relative;
+}
+
+.favorites-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    min-width: 250px;
+    max-width: 350px;
+    max-height: 400px;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.favorites-dropdown-header {
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background);
+    font-size: 0.9rem;
+}
+
+.favorites-dropdown-list {
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.favorites-dropdown-list .favorite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--background);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0.5rem;
+}
+
+.favorites-dropdown-list .favorite-item:last-child {
+    margin-bottom: 0;
+}
+
+.favorites-dropdown-list .favorite-item:hover {
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.favorites-dropdown-list .favorite-item-info {
+    flex: 1;
+}
+
+.favorites-dropdown-list .favorite-item-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.favorites-dropdown-list .favorite-item-country {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.favorites-dropdown-list .empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 1.5rem 1rem;
+}
+
 /* Header (Old - Remove styles) */
 .header {
     display: none;
@@ -360,46 +443,16 @@ body {
     gap: 0.5rem;
 }
 
-/* Settings Panel */
-.settings-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%;
-    max-width: 400px;
-    height: 100vh;
-    background: var(--surface);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
+/* Settings Modal */
+.settings-modal-content {
+    max-width: 600px;
+    max-height: 90vh;
     overflow-y: auto;
-    animation: slideInRight 0.3s ease-out;
 }
 
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-    }
-    to {
-        transform: translateX(0);
-    }
-}
-
-.settings-content {
-    padding: 1.5rem;
-}
-
-.settings-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.settings-header h3 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
+.settings-body {
+    max-height: calc(90vh - 150px);
+    overflow-y: auto;
 }
 
 .settings-section {
@@ -1595,6 +1648,12 @@ body {
 }
 
 .footer-app-name {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.footer-app-name-line {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -1604,6 +1663,12 @@ body {
 .footer-logo {
     display: flex;
     align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.footer-logo:hover {
+    transform: scale(1.05);
 }
 
 .footer-icon {

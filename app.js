@@ -46,7 +46,26 @@ const translations = {
             'unknown': 'unknown'
         },
         weeklyAverage: 'Weekly Average',
-        monthlyAverage: 'Monthly Average'
+        monthlyAverage: 'Monthly Average',
+        // Welcome message
+        welcomeTitle: 'Welcome to Weather Timeline!',
+        welcomeSubtitle: 'Compare weather patterns across multiple years',
+        welcomeInstruction: 'Start by searching for a city above',
+        // Settings
+        settings: 'Settings',
+        theme: 'Theme',
+        language: 'Language',
+        temperatureUnit: 'Temperature Unit',
+        favoriteLocations: 'Favorite Locations',
+        keyboardShortcuts: 'Keyboard Shortcuts',
+        light: 'Light',
+        dark: 'Dark',
+        // Keyboard shortcuts
+        shortcutEsc: 'Close modals, settings, or autocomplete',
+        shortcutArrows: 'Scroll timelines left/right',
+        shortcutS: 'Toggle synchronized scrolling',
+        shortcutT: 'Toggle theme (Light ↔ Dark)',
+        shortcutU: 'Toggle temperature unit (°C ↔ °F)'
     },
     tr: {
         searchPlaceholder: 'Şehir ara...',
@@ -92,7 +111,26 @@ const translations = {
             'unknown': 'bilinmiyor'
         },
         weeklyAverage: 'Haftalık Ortalama',
-        monthlyAverage: 'Aylık Ortalama'
+        monthlyAverage: 'Aylık Ortalama',
+        // Welcome message
+        welcomeTitle: 'Hava Durumu Zaman Çizelgesine Hoş Geldiniz!',
+        welcomeSubtitle: 'Birden fazla yıl boyunca hava durumu modellerini karşılaştırın',
+        welcomeInstruction: 'Yukarıdan bir şehir arayarak başlayın',
+        // Settings
+        settings: 'Ayarlar',
+        theme: 'Tema',
+        language: 'Dil',
+        temperatureUnit: 'Sıcaklık Birimi',
+        favoriteLocations: 'Favori Konumlar',
+        keyboardShortcuts: 'Klavye Kısayolları',
+        light: 'Açık',
+        dark: 'Koyu',
+        // Keyboard shortcuts
+        shortcutEsc: 'Modları, ayarları veya otomatik tamamlamayı kapat',
+        shortcutArrows: 'Zaman çizelgelerini sola/sağa kaydır',
+        shortcutS: 'Senkronize kaydırmayı aç/kapat',
+        shortcutT: 'Temayı değiştir (Açık ↔ Koyu)',
+        shortcutU: 'Sıcaklık birimini değiştir (°C ↔ °F)'
     },
     es: {
         searchPlaceholder: 'Buscar ciudad...',
@@ -138,7 +176,26 @@ const translations = {
             'unknown': 'desconocido'
         },
         weeklyAverage: 'Promedio Semanal',
-        monthlyAverage: 'Promedio Mensual'
+        monthlyAverage: 'Promedio Mensual',
+        // Welcome message
+        welcomeTitle: '¡Bienvenido a Weather Timeline!',
+        welcomeSubtitle: 'Compara patrones climáticos a través de múltiples años',
+        welcomeInstruction: 'Comienza buscando una ciudad arriba',
+        // Settings
+        settings: 'Configuración',
+        theme: 'Tema',
+        language: 'Idioma',
+        temperatureUnit: 'Unidad de Temperatura',
+        favoriteLocations: 'Ubicaciones Favoritas',
+        keyboardShortcuts: 'Atajos de Teclado',
+        light: 'Claro',
+        dark: 'Oscuro',
+        // Keyboard shortcuts
+        shortcutEsc: 'Cerrar modales, configuración o autocompletar',
+        shortcutArrows: 'Desplazar líneas de tiempo izquierda/derecha',
+        shortcutS: 'Alternar desplazamiento sincronizado',
+        shortcutT: 'Alternar tema (Claro ↔ Oscuro)',
+        shortcutU: 'Alternar unidad de temperatura (°C ↔ °F)'
     }
 };
 
@@ -168,6 +225,10 @@ class WeatherTimeline {
         this.setupEventListeners();
         this.setupKeyboardShortcuts();
         this.renderFavorites();
+
+        // Update translations for initial language
+        this.updateWelcomeMessageTranslations();
+        this.updateSettingsTranslations();
     }
 
     // Load preferences from localStorage
@@ -267,10 +328,17 @@ class WeatherTimeline {
         this.themeToggleBtn = document.getElementById('themeToggleBtn');
         this.langDropdownBtn = document.getElementById('langDropdownBtn');
         this.langDropdownMenu = document.getElementById('langDropdownMenu');
+        this.navFavoritesBtn = document.getElementById('navFavoritesBtn');
+        this.navFavoritesDropdown = document.getElementById('navFavoritesDropdown');
+        this.navFavoritesDropdownList = document.getElementById('navFavoritesDropdownList');
 
         // Footer elements
+        this.footerFavoritesBtn = document.getElementById('footerFavoritesBtn');
+        this.footerFavoritesDropdown = document.getElementById('footerFavoritesDropdown');
+        this.footerFavoritesDropdownList = document.getElementById('footerFavoritesDropdownList');
         this.footerSettingsBtn = document.getElementById('footerSettingsBtn');
         this.footerThemeToggleBtn = document.getElementById('footerThemeToggleBtn');
+        this.footerLogo = document.querySelector('.footer-logo');
 
         // Settings
         this.settingsPanel = document.getElementById('settingsPanel');
@@ -331,6 +399,13 @@ class WeatherTimeline {
         });
         this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
 
+        // Close settings modal on background click
+        this.settingsPanel.addEventListener('click', (e) => {
+            if (e.target === this.settingsPanel) {
+                this.closeSettings();
+            }
+        });
+
         // Footer - Settings and Theme
         this.footerSettingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -338,6 +413,11 @@ class WeatherTimeline {
         });
         this.footerThemeToggleBtn.addEventListener('click', () => {
             this.toggleTheme();
+        });
+
+        // Footer - Logo (Scroll to top)
+        this.footerLogo.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         // Navbar - Search
@@ -399,6 +479,32 @@ class WeatherTimeline {
                 !this.langDropdownBtn.contains(e.target) &&
                 !this.langDropdownMenu.contains(e.target)) {
                 this.langDropdownMenu.style.display = 'none';
+            }
+        });
+
+        // Navbar - Favorites dropdown
+        this.navFavoritesBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleNavFavoritesDropdown();
+        });
+
+        // Footer - Favorites dropdown
+        this.footerFavoritesBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFooterFavoritesDropdown();
+        });
+
+        // Close favorites dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (this.navFavoritesDropdown.style.display === 'block' &&
+                !this.navFavoritesBtn.contains(e.target) &&
+                !this.navFavoritesDropdown.contains(e.target)) {
+                this.navFavoritesDropdown.style.display = 'none';
+            }
+            if (this.footerFavoritesDropdown.style.display === 'block' &&
+                !this.footerFavoritesBtn.contains(e.target) &&
+                !this.footerFavoritesDropdown.contains(e.target)) {
+                this.footerFavoritesDropdown.style.display = 'none';
             }
         });
 
@@ -493,21 +599,6 @@ class WeatherTimeline {
                 this.closeKeyboardHelpModal();
             }
         });
-
-        // Close settings on background click - Fixed to not interfere with buttons inside
-        document.addEventListener('click', (e) => {
-            if (this.settingsPanel.style.display === 'block' &&
-                !this.settingsPanel.contains(e.target) &&
-                e.target !== this.navSettingsBtn &&
-                !this.navSettingsBtn.contains(e.target)) {
-                this.closeSettings();
-            }
-        });
-
-        // Prevent settings panel clicks from closing it
-        this.settingsPanel.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
     }
 
     // Keyboard shortcuts
@@ -521,7 +612,7 @@ class WeatherTimeline {
                     this.closeJumpToDateModal();
                 } else if (this.keyboardHelpModal.style.display === 'flex') {
                     this.closeKeyboardHelpModal();
-                } else if (this.settingsPanel.style.display === 'block') {
+                } else if (this.settingsPanel.style.display === 'flex') {
                     this.closeSettings();
                 } else if (this.navbarAutocomplete.style.display === 'block') {
                     this.hideNavbarAutocomplete();
@@ -681,6 +772,10 @@ class WeatherTimeline {
         // Update search placeholder
         this.navbarSearch.placeholder = this.t('searchPlaceholder');
 
+        // Update welcome message and settings
+        this.updateWelcomeMessageTranslations();
+        this.updateSettingsTranslations();
+
         // Re-render timelines if location is selected
         if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
             this.renderAllTimelines();
@@ -699,13 +794,54 @@ class WeatherTimeline {
         return this.preferences.tempUnit === 'fahrenheit' ? '°F' : '°C';
     }
 
-    // Settings panel
+    // Settings modal
     openSettings() {
-        this.settingsPanel.style.display = 'block';
+        this.settingsPanel.style.display = 'flex';
     }
 
     closeSettings() {
         this.settingsPanel.style.display = 'none';
+    }
+
+    updateWelcomeMessageTranslations() {
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+        const welcomeInstruction = document.getElementById('welcomeInstruction');
+        if (welcomeTitle) welcomeTitle.textContent = this.t('welcomeTitle');
+        if (welcomeSubtitle) welcomeSubtitle.textContent = this.t('welcomeSubtitle');
+        if (welcomeInstruction) welcomeInstruction.textContent = this.t('welcomeInstruction');
+    }
+
+    updateSettingsTranslations() {
+        // Update settings header
+        const settingsHeader = this.settingsPanel.querySelector('.settings-header h3');
+        if (settingsHeader) settingsHeader.textContent = this.t('settings');
+
+        // Update settings section labels
+        const labels = this.settingsPanel.querySelectorAll('.settings-section label');
+        if (labels[0]) labels[0].textContent = this.t('theme');
+        if (labels[1]) labels[1].textContent = this.t('language');
+        if (labels[2]) labels[2].textContent = this.t('temperatureUnit');
+        if (labels[3]) labels[3].textContent = this.t('keyboardShortcuts');
+
+        // Update theme buttons
+        const themeButtons = this.settingsPanel.querySelectorAll('.settings-section [data-theme]');
+        themeButtons.forEach(btn => {
+            if (btn.dataset.theme === 'light') btn.textContent = this.t('light');
+            if (btn.dataset.theme === 'dark') btn.textContent = this.t('dark');
+        });
+
+        // Update favorites header
+        const favoritesHeader = this.favoritesHeader.querySelector('h4');
+        if (favoritesHeader) favoritesHeader.textContent = this.t('favoriteLocations');
+
+        // Update keyboard shortcuts descriptions
+        const shortcutItems = this.settingsPanel.querySelectorAll('.keyboard-shortcuts-list .shortcut-item span');
+        if (shortcutItems[0]) shortcutItems[0].textContent = this.t('shortcutEsc');
+        if (shortcutItems[1]) shortcutItems[1].textContent = this.t('shortcutArrows');
+        if (shortcutItems[2]) shortcutItems[2].textContent = this.t('shortcutS');
+        if (shortcutItems[3]) shortcutItems[3].textContent = this.t('shortcutT');
+        if (shortcutItems[4]) shortcutItems[4].textContent = this.t('shortcutU');
     }
 
     toggleFavoritesList() {
@@ -762,6 +898,8 @@ class WeatherTimeline {
         if (this.preferences.favorites.length === 0) {
             this.favoritesList.innerHTML = '<p class="empty-state">No favorites yet. Search for a city and click the star!</p>';
             this.favoritesBoxes.innerHTML = '<p class="empty-favorites">No favorites yet. Search and star locations!</p>';
+            this.navFavoritesDropdownList.innerHTML = '<p class="empty-state">No favorites yet</p>';
+            this.footerFavoritesDropdownList.innerHTML = '<p class="empty-state">No favorites yet</p>';
             return;
         }
 
@@ -844,6 +982,33 @@ class WeatherTimeline {
                 this.removeFavorite(lat, lon);
             });
         });
+
+        // Render to navbar dropdown
+        const dropdownHTML = this.preferences.favorites.map(fav => `
+            <div class="favorite-item" data-lat="${fav.lat}" data-lon="${fav.lon}" data-name="${fav.name}" data-country="${fav.country}">
+                <div class="favorite-item-info">
+                    <div class="favorite-item-name">${fav.name}</div>
+                    <div class="favorite-item-country">${fav.country}</div>
+                </div>
+            </div>
+        `).join('');
+
+        this.navFavoritesDropdownList.innerHTML = dropdownHTML;
+        this.footerFavoritesDropdownList.innerHTML = dropdownHTML;
+
+        // Add click handlers to dropdown favorites
+        document.querySelectorAll('#navFavoritesDropdownList .favorite-item, #footerFavoritesDropdownList .favorite-item').forEach(item => {
+            const lat = parseFloat(item.dataset.lat);
+            const lon = parseFloat(item.dataset.lon);
+            const name = item.dataset.name;
+            const country = item.dataset.country;
+
+            item.addEventListener('click', () => {
+                this.loadWeatherData(lat, lon, name, country);
+                this.navFavoritesDropdown.style.display = 'none';
+                this.footerFavoritesDropdown.style.display = 'none';
+            });
+        });
     }
 
     removeFavorite(lat, lon) {
@@ -861,6 +1026,22 @@ class WeatherTimeline {
                 this.favoriteBtn.classList.remove('active');
             }
         }
+    }
+
+    toggleNavFavoritesDropdown() {
+        const isVisible = this.navFavoritesDropdown.style.display === 'block';
+        this.navFavoritesDropdown.style.display = isVisible ? 'none' : 'block';
+        // Close footer dropdown if open
+        this.footerFavoritesDropdown.style.display = 'none';
+        // Close language dropdown if open
+        this.langDropdownMenu.style.display = 'none';
+    }
+
+    toggleFooterFavoritesDropdown() {
+        const isVisible = this.footerFavoritesDropdown.style.display === 'block';
+        this.footerFavoritesDropdown.style.display = isVisible ? 'none' : 'block';
+        // Close navbar dropdown if open
+        this.navFavoritesDropdown.style.display = 'none';
     }
 
     // Navbar search autocomplete - Optimized
