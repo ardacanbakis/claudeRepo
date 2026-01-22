@@ -67,7 +67,6 @@ const translations = {
         // Keyboard shortcuts
         shortcutEsc: 'Close modals, settings, or autocomplete',
         shortcutArrows: 'Scroll timelines left/right',
-        shortcutS: 'Toggle synchronized scrolling',
         shortcutT: 'Toggle theme (Light ↔ Dark)',
         shortcutU: 'Toggle temperature unit (°C ↔ °F)'
     },
@@ -136,7 +135,6 @@ const translations = {
         // Keyboard shortcuts
         shortcutEsc: 'Modları, ayarları veya otomatik tamamlamayı kapat',
         shortcutArrows: 'Zaman çizelgelerini sola/sağa kaydır',
-        shortcutS: 'Senkronize kaydırmayı aç/kapat',
         shortcutT: 'Temayı değiştir (Açık ↔ Koyu)',
         shortcutU: 'Sıcaklık birimini değiştir (°C ↔ °F)'
     },
@@ -205,7 +203,6 @@ const translations = {
         // Keyboard shortcuts
         shortcutEsc: 'Cerrar modales, configuración o autocompletar',
         shortcutArrows: 'Desplazar líneas de tiempo izquierda/derecha',
-        shortcutS: 'Alternar desplazamiento sincronizado',
         shortcutT: 'Alternar tema (Claro ↔ Oscuro)',
         shortcutU: 'Alternar unidad de temperatura (°C ↔ °F)'
     }
@@ -222,7 +219,6 @@ class WeatherTimeline {
         this.currentLang = this.preferences.lang || 'en';
         this.timelines = [{ yearsAgo: 0 }, { yearsAgo: 1 }]; // Start with current year and 1 year ago
         this.weatherDataCache = {}; // Cache weather data by year
-        this.syncScroll = true;
         this.autocompleteResults = [];
         this.autocompleteTimeout = null;
         this.autocompleteSelectedIndex = -1;
@@ -687,12 +683,6 @@ class WeatherTimeline {
                 this.scrollAllTimelines(300);
             }
 
-            // S - Toggle sync scroll
-            if (e.key === 's' || e.key === 'S') {
-                e.preventDefault();
-                this.toggleSyncScroll();
-            }
-
             // T - Toggle theme
             if (e.key === 't' || e.key === 'T') {
                 e.preventDefault();
@@ -939,9 +929,8 @@ class WeatherTimeline {
         const shortcutItems = this.settingsPanel.querySelectorAll('.keyboard-shortcuts-list .shortcut-item span');
         if (shortcutItems[0]) shortcutItems[0].textContent = this.t('shortcutEsc');
         if (shortcutItems[1]) shortcutItems[1].textContent = this.t('shortcutArrows');
-        if (shortcutItems[2]) shortcutItems[2].textContent = this.t('shortcutS');
-        if (shortcutItems[3]) shortcutItems[3].textContent = this.t('shortcutT');
-        if (shortcutItems[4]) shortcutItems[4].textContent = this.t('shortcutU');
+        if (shortcutItems[2]) shortcutItems[2].textContent = this.t('shortcutT');
+        if (shortcutItems[3]) shortcutItems[3].textContent = this.t('shortcutU');
     }
 
     toggleFavoritesList() {
@@ -1772,141 +1761,135 @@ class WeatherTimeline {
         this.showSuccess('Removed timeline');
     }
 
-    toggleSyncScroll() {
-        this.syncScroll = !this.syncScroll;
+    // Sync scroll removed - unified scroll container handles this automatically
 
-        // Update all sync scroll buttons in timeline headers
-        document.querySelectorAll('.sync-scroll-btn').forEach(btn => {
-            btn.classList.toggle('active', this.syncScroll);
-        });
-
-        // Update sync scroll button in controls (if it exists)
-        if (this.syncScrollBtn) {
-            this.syncScrollBtn.classList.toggle('active', this.syncScroll);
-        }
-
-        if (this.syncScroll) {
-            this.showSuccess('Scroll synchronization enabled');
-            this.setupScrollSync();
-        } else {
-            this.showSuccess('Scroll synchronization disabled');
-        }
-    }
-
-    // Render all timelines
+    // Render all timelines in unified container
     renderAllTimelines() {
         this.timelinesWrapper.innerHTML = '';
 
+        // Create unified container structure
+        const unifiedContainer = document.createElement('div');
+        unifiedContainer.className = 'unified-timeline-container';
+
+        // Create scroll controls wrapper
+        const scrollControlsWrapper = document.createElement('div');
+        scrollControlsWrapper.className = 'unified-scroll-wrapper';
+
+        // Left scroll button
+        const leftButton = document.createElement('button');
+        leftButton.className = 'scroll-btn scroll-left';
+        leftButton.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+        `;
+
+        // Unified timeline scroll container
+        const unifiedScroll = document.createElement('div');
+        unifiedScroll.className = 'unified-timeline-scroll';
+
+        // Right scroll button
+        const rightButton = document.createElement('button');
+        rightButton.className = 'scroll-btn scroll-right';
+        rightButton.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"></path>
+            </svg>
+        `;
+
+        // Render each timeline as a row
         this.timelines.forEach((timeline) => {
             const data = this.weatherDataCache[timeline.yearsAgo];
             if (!data) return;
 
             const aggregated = this.aggregateData(data);
-            const timelineElement = this.createTimelineSection(timeline, aggregated);
-            this.timelinesWrapper.appendChild(timelineElement);
+            const timelineRow = this.createTimelineRow(timeline, aggregated);
+            unifiedScroll.appendChild(timelineRow);
         });
 
-        // Setup scroll synchronization
-        if (this.syncScroll) {
-            this.setupScrollSync();
-        }
+        // Assemble unified structure
+        scrollControlsWrapper.appendChild(leftButton);
+        scrollControlsWrapper.appendChild(unifiedScroll);
+        scrollControlsWrapper.appendChild(rightButton);
+        unifiedContainer.appendChild(scrollControlsWrapper);
+
+        this.timelinesWrapper.appendChild(unifiedContainer);
+
+        // Setup scroll buttons
+        leftButton.addEventListener('click', () => {
+            unifiedScroll.scrollLeft -= 300;
+        });
+        rightButton.addEventListener('click', () => {
+            unifiedScroll.scrollLeft += 300;
+        });
+
+        // Scroll to end (today's date)
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                unifiedScroll.scrollLeft = unifiedScroll.scrollWidth;
+            });
+        }, 300);
     }
 
-    createTimelineSection(timeline, data) {
-        const section = document.createElement('div');
-        section.className = 'timeline-section';
-        section.dataset.yearsAgo = timeline.yearsAgo;
+    createTimelineRow(timeline, data) {
+        const row = document.createElement('div');
+        row.className = 'timeline-row';
+        row.dataset.yearsAgo = timeline.yearsAgo;
 
         const year = new Date().getFullYear() - timeline.yearsAgo;
         const title = timeline.yearsAgo === 0 ? this.t('currentWeather') :
                       timeline.yearsAgo === 1 ? this.t('oneYearAgo') :
                       `${timeline.yearsAgo} ${this.t('yearsAgo')}`;
 
-        // Current Weather header: Title + Year + Add Comparison + Jump to Date
-        // Comparison Year header: Title + Year + Sync Scroll + Remove
+        // Create header
+        const header = document.createElement('div');
+        header.className = 'timeline-row-header';
+
         if (timeline.yearsAgo === 0) {
-            section.innerHTML = `
-                <div class="timeline-header">
-                    <h2>
-                        ${title}
-                        <span class="year-label-inline">${year}</span>
-                    </h2>
-                    <div class="timeline-header-actions">
-                        <button id="addTimelineBtn" class="btn btn-outline btn-sm">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14m-7-7h14"></path>
-                            </svg>
-                            <span class="btn-text-inline">${this.t('addComparisonYear')}</span>
-                        </button>
-                        <button id="jumpToDateBtn" class="btn btn-outline btn-sm">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                            <span class="btn-text-inline">${this.t('jumpToDate')}</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"></path>
+            header.innerHTML = `
+                <h2>
+                    ${title}
+                    <span class="year-label-inline">${year}</span>
+                </h2>
+                <div class="timeline-header-actions">
+                    <button id="addTimelineBtn" class="btn btn-outline btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14m-7-7h14"></path>
                         </svg>
+                        <span class="btn-text-inline">${this.t('addComparisonYear')}</span>
                     </button>
-                    <div class="timeline-scroll">
-                        <div class="timeline-track"></div>
-                    </div>
-                    <button class="scroll-btn scroll-right">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"></path>
+                    <button id="jumpToDateBtn" class="btn btn-outline btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
+                        <span class="btn-text-inline">${this.t('jumpToDate')}</span>
                     </button>
                 </div>
             `;
         } else {
-            section.innerHTML = `
-                <div class="timeline-header">
-                    <h2>
-                        ${title}
-                        <span class="year-label-inline">${year}</span>
-                    </h2>
-                    <div class="timeline-header-actions">
-                        <button class="btn btn-outline btn-sm sync-scroll-btn ${this.syncScroll ? 'active' : ''}" title="${this.t('syncScroll')}" data-years-ago="${timeline.yearsAgo}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M23 4v6h-6M1 20v-6h6"></path>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                            </svg>
-                            <span class="btn-text-inline">${this.t('syncScroll')}</span>
-                        </button>
-                        <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 6L6 18M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"></path>
-                        </svg>
-                    </button>
-                    <div class="timeline-scroll">
-                        <div class="timeline-track"></div>
-                    </div>
-                    <button class="scroll-btn scroll-right">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"></path>
+            header.innerHTML = `
+                <h2>
+                    ${title}
+                    <span class="year-label-inline">${year}</span>
+                </h2>
+                <div class="timeline-header-actions">
+                    <button class="btn btn-icon btn-danger remove-timeline-btn" title="Remove this timeline">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
             `;
         }
 
+        // Create track for items
+        const track = document.createElement('div');
+        track.className = 'timeline-track';
+
         // Add timeline items
-        const track = section.querySelector('.timeline-track');
         data.forEach((item, index) => {
             const isToday = timeline.yearsAgo === 0 && this.isToday(item.date);
 
@@ -1923,11 +1906,13 @@ class WeatherTimeline {
             track.appendChild(element);
         });
 
+        row.appendChild(header);
+        row.appendChild(track);
+
         // Setup header action buttons
         if (timeline.yearsAgo === 0) {
-            // Current Weather: Add Timeline and Jump to Date buttons
-            const addTimelineBtn = section.querySelector('#addTimelineBtn');
-            const jumpToDateBtn = section.querySelector('#jumpToDateBtn');
+            const addTimelineBtn = row.querySelector('#addTimelineBtn');
+            const jumpToDateBtn = row.querySelector('#jumpToDateBtn');
 
             if (addTimelineBtn) {
                 addTimelineBtn.addEventListener('click', () => this.openAddTimelineModal());
@@ -1936,77 +1921,16 @@ class WeatherTimeline {
                 jumpToDateBtn.addEventListener('click', () => this.openJumpToDateModal());
             }
         } else {
-            // Comparison Year: Sync Scroll and Remove buttons
-            const syncScrollBtn = section.querySelector('.sync-scroll-btn');
-            const removeBtn = section.querySelector('.remove-timeline-btn');
-
-            if (syncScrollBtn) {
-                syncScrollBtn.addEventListener('click', () => this.toggleSyncScroll());
-            }
+            const removeBtn = row.querySelector('.remove-timeline-btn');
             if (removeBtn) {
                 removeBtn.addEventListener('click', () => this.removeTimeline(timeline.yearsAgo));
             }
         }
 
-        // Setup scroll buttons
-        const scrollContainer = section.querySelector('.timeline-scroll');
-        section.querySelector('.scroll-left').addEventListener('click', () => {
-            scrollContainer.scrollLeft -= 300;
-        });
-        section.querySelector('.scroll-right').addEventListener('click', () => {
-            scrollContainer.scrollLeft += 300;
-        });
-
-        // Scroll to end (today's date) - use longer delay and requestAnimationFrame
-        setTimeout(() => {
-            requestAnimationFrame(() => {
-                scrollContainer.scrollLeft = scrollContainer.scrollWidth;
-            });
-        }, 300);
-
-        return section;
+        return row;
     }
 
-    setupScrollSync() {
-        const scrollContainers = document.querySelectorAll('.timeline-scroll');
-        let isScrolling = false;
-        let scrollTimeout = null;
-
-        // Find the Current Weather timeline (yearsAgo: 0)
-        const currentWeatherSection = document.querySelector('[data-years-ago="0"]');
-        if (!currentWeatherSection) return;
-
-        const currentWeatherScroll = currentWeatherSection.querySelector('.timeline-scroll');
-        if (!currentWeatherScroll) return;
-
-        // Only sync from Current Weather timeline to others
-        currentWeatherScroll.addEventListener('scroll', (e) => {
-            if (!this.syncScroll || isScrolling) return;
-
-            isScrolling = true;
-            const scrollPercent = e.target.scrollLeft / (e.target.scrollWidth - e.target.clientWidth);
-
-            // Clear any existing timeout
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
-            }
-
-            // Wait for scroll to finish before updating other containers
-            scrollTimeout = setTimeout(() => {
-                scrollContainers.forEach(other => {
-                    if (other !== e.target) {
-                        const targetScroll = scrollPercent * (other.scrollWidth - other.clientWidth);
-                        other.scrollLeft = targetScroll;
-                    }
-                });
-
-                // Reset after all scrolls complete
-                setTimeout(() => {
-                    isScrolling = false;
-                }, 100);
-            }, 500); // 0.5s delay as requested
-        });
-    }
+    // Scroll sync no longer needed with unified container
 
     aggregateData(data) {
         if (this.currentView === 'daily') {

@@ -1207,7 +1207,76 @@ body {
     gap: 1.5rem;
 }
 
-/* Timeline Section */
+/* Unified Timeline Container */
+.unified-timeline-container {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+}
+
+.unified-scroll-wrapper {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.unified-timeline-scroll {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.unified-timeline-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.unified-timeline-scroll::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 4px;
+}
+
+.unified-timeline-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.unified-timeline-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* Timeline Row */
+.timeline-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: max-content;
+}
+
+.timeline-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.timeline-row-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+/* Legacy timeline styles (keeping for compatibility) */
 .timeline-section {
     background: var(--surface);
     padding: 1rem;
@@ -1269,6 +1338,7 @@ body {
     opacity: 0.8;
 }
 
+/* Legacy timeline wrapper styles (replaced by unified container) */
 .timeline-wrapper {
     position: relative;
 }
