@@ -2219,34 +2219,51 @@ body {
     }
 
     .navbar-content {
-        padding: 0 1rem;
-        gap: 0.75rem;
+        padding: 0 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .app-logo svg {
+        width: 30px;
+        height: 30px;
     }
 
     .app-name {
         display: none;
     }
 
+    /* IMPORTANT: Limit search bar width to show settings button */
     .navbar-center {
         max-width: none;
-        flex: 1;
-        margin: 0 0.5rem;
+        flex: 0 1 auto; /* Don't grow, allow shrink */
+        margin: 0 0.25rem;
+        min-width: 0; /* Allow flexbox shrinking */
     }
 
     .merged-search {
         display: flex !important;
         width: 100%;
+        max-width: 220px; /* Limit search bar width on mobile */
+        padding: 0 0.5rem;
     }
 
     .merged-search input {
-        font-size: 0.875rem;
-        padding: 0.5rem 0.5rem;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.25rem;
         display: block !important;
+        min-width: 0; /* Allow input to shrink */
     }
 
     .navbar-right {
         gap: 0.25rem;
         display: flex;
+        flex-shrink: 0; /* Don't shrink navbar-right */
+    }
+
+    .navbar-icon,
+    .btn-icon {
+        min-width: 36px;
+        min-height: 36px;
     }
 
     .language-selector {
@@ -2276,25 +2293,26 @@ body {
         font-size: 1rem;
     }
 
-    /* Timeline Controls - Mobile */
+    /* Timeline Controls - Mobile - More Compact */
     .timeline-controls {
-        padding: 0.75rem 0.5rem;
+        padding: 0.5rem;
     }
 
     .view-controls-centered {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
     }
 
     .btn-group {
         width: 100%;
         justify-content: center;
+        gap: 0.5rem;
     }
 
     .btn-view {
         flex: 1;
-        padding: 0.65rem 1rem;
-        font-size: 0.9rem;
+        padding: 0.55rem 0.85rem;
+        font-size: 0.85rem;
     }
 
     .timeline-action-buttons {
@@ -2306,6 +2324,8 @@ body {
     .timeline-action-buttons .btn {
         width: 100%;
         justify-content: center;
+        padding: 0.5rem;
+        font-size: 0.85rem;
     }
 
     .btn-text-inline {
@@ -2373,8 +2393,8 @@ body {
     /* Make track scrollable with one item visible */
     .timeline-track {
         display: flex !important;
-        gap: 0.5rem;
-        padding: 0 0.5rem !important;
+        gap: 0.75rem; /* Increased gap between cards */
+        padding: 0 0.75rem !important;
         overflow-x: auto !important;
         overflow-y: visible !important;
         scroll-snap-type: x mandatory !important;
@@ -2388,17 +2408,18 @@ body {
         display: none !important; /* Hide scrollbar for Chrome/Safari */
     }
 
-    /* ONE ITEM AT A TIME - Full width cards */
+    /* ONE ITEM AT A TIME - Full width cards - MORE AGGRESSIVE */
     .timeline-item {
-        min-width: calc(100vw - 2rem) !important; /* Full viewport minus small padding */
-        max-width: calc(100vw - 2rem) !important;
-        width: calc(100vw - 2rem) !important;
+        min-width: calc(100vw - 2.5rem) !important; /* Almost full viewport */
+        max-width: calc(100vw - 2.5rem) !important;
+        width: calc(100vw - 2.5rem) !important;
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
-        padding: 1.5rem 1rem !important;
+        padding: 1rem 0.75rem !important; /* More compact padding */
         scroll-snap-align: center !important;
         scroll-snap-stop: always !important;
         margin: 0 !important;
+        box-sizing: border-box !important;
     }
 
     .timeline-item:first-child {
@@ -2409,43 +2430,45 @@ body {
         margin-right: 0 !important;
     }
 
-    /* Larger touch-friendly elements */
+    /* More compact, mobile-friendly elements */
     .timeline-date {
-        font-size: 1.05rem;
+        font-size: 0.95rem !important;
         font-weight: 700;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.2rem !important;
     }
 
     .timeline-day {
-        font-size: 0.9rem;
-        margin-bottom: 0.75rem;
+        font-size: 0.8rem !important;
+        margin-bottom: 0.5rem !important;
+        opacity: 0.9;
     }
 
     .weather-icon {
-        font-size: 3.5rem;
-        margin: 0.5rem 0;
+        font-size: 2.75rem !important; /* Smaller icon */
+        margin: 0.4rem 0 !important;
     }
 
     .weather-temp {
-        font-size: 2rem;
-        margin: 0.5rem 0;
+        font-size: 1.75rem !important; /* Smaller temp */
+        margin: 0.4rem 0 !important;
+        font-weight: 700;
     }
 
     .temp-range {
-        gap: 1rem;
-        font-size: 0.95rem;
-        margin-top: 0.5rem;
+        gap: 0.75rem !important;
+        font-size: 0.85rem !important;
+        margin-top: 0.4rem !important;
     }
 
     .weather-condition {
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
+        font-size: 0.8rem !important;
+        margin-top: 0.4rem !important;
     }
 
     .temp-difference {
-        font-size: 0.9rem;
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
+        font-size: 0.75rem !important;
+        margin-top: 0.5rem !important;
+        padding-top: 0.5rem !important;
     }
 
     /* Scroll buttons for mobile - HIDDEN */
@@ -2558,41 +2581,45 @@ body {
         padding: 0.45rem 0.4rem;
     }
 
-    /* Smaller timeline items for iPhone SE */
+    /* Smaller, more compact timeline items for iPhone SE */
     .timeline-item {
-        min-width: calc(100vw - 1.5rem) !important;
-        max-width: calc(100vw - 1.5rem) !important;
-        width: calc(100vw - 1.5rem) !important;
-        padding: 1rem 0.75rem !important;
+        min-width: calc(100vw - 2rem) !important;
+        max-width: calc(100vw - 2rem) !important;
+        width: calc(100vw - 2rem) !important;
+        padding: 0.85rem 0.65rem !important;
     }
 
     .timeline-date {
-        font-size: 0.95rem;
+        font-size: 0.9rem !important;
     }
 
     .timeline-day {
-        font-size: 0.85rem;
+        font-size: 0.75rem !important;
     }
 
     .weather-icon {
-        font-size: 3rem;
+        font-size: 2.5rem !important;
     }
 
     .weather-temp {
-        font-size: 1.75rem;
+        font-size: 1.6rem !important;
     }
 
     .temp-range {
-        font-size: 0.85rem;
-        gap: 0.75rem;
+        font-size: 0.75rem !important;
+        gap: 0.65rem !important;
     }
 
     .weather-condition {
-        font-size: 0.85rem;
+        font-size: 0.75rem !important;
     }
 
     .temp-difference {
-        font-size: 0.85rem;
+        font-size: 0.7rem !important;
+    }
+
+    .merged-search {
+        max-width: 180px !important; /* Even narrower on SE */
     }
 
     .timeline-row-header h2 {
@@ -2635,56 +2662,65 @@ body {
 /* Standard iPhones (376px to 430px) - iPhone 12/13/14, iPhone 14 Pro */
 @media (min-width: 376px) and (max-width: 430px) {
     .timeline-item {
-        min-width: calc(100vw - 2rem) !important;
-        max-width: calc(100vw - 2rem) !important;
-        width: calc(100vw - 2rem) !important;
-        padding: 1.15rem 0.85rem !important;
+        min-width: calc(100vw - 2.5rem) !important;
+        max-width: calc(100vw - 2.5rem) !important;
+        width: calc(100vw - 2.5rem) !important;
+        padding: 0.95rem 0.75rem !important;
     }
 
     .weather-icon {
-        font-size: 3.25rem;
+        font-size: 2.6rem !important;
     }
 
     .weather-temp {
-        font-size: 1.85rem;
+        font-size: 1.7rem !important;
+    }
+
+    .merged-search {
+        max-width: 200px !important;
     }
 }
 
 /* iPhone Pro Max and large phones (431px and above, but still mobile) */
 @media (min-width: 431px) and (max-width: 768px) {
+    /* CRITICAL: Make card width larger to show ONLY ONE card */
     .timeline-item {
-        min-width: calc(100vw - 2rem) !important;
-        max-width: calc(100vw - 2rem) !important;
-        width: calc(100vw - 2rem) !important;
-        padding: 1.35rem 1rem !important;
+        min-width: calc(100vw - 2.5rem) !important;
+        max-width: calc(100vw - 2.5rem) !important;
+        width: calc(100vw - 2.5rem) !important;
+        padding: 1rem 0.85rem !important;
     }
 
     .timeline-date {
-        font-size: 1.1rem;
+        font-size: 1rem !important;
     }
 
     .timeline-day {
-        font-size: 0.95rem;
+        font-size: 0.85rem !important;
     }
 
     .weather-icon {
-        font-size: 3.75rem;
+        font-size: 2.85rem !important;
     }
 
     .weather-temp {
-        font-size: 2.15rem;
+        font-size: 1.8rem !important;
     }
 
     .temp-range {
-        font-size: 1rem;
+        font-size: 0.9rem !important;
     }
 
     .weather-condition {
-        font-size: 0.95rem;
+        font-size: 0.85rem !important;
     }
 
     .temp-difference {
-        font-size: 0.95rem;
+        font-size: 0.8rem !important;
+    }
+
+    .merged-search {
+        max-width: 240px !important;
     }
 }
 
