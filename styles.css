@@ -2232,38 +2232,49 @@ body {
         display: none;
     }
 
-    /* IMPORTANT: Limit search bar width to show settings button */
+    /* CRITICAL: Limit search bar width to show settings button */
     .navbar-center {
-        max-width: none;
         flex: 0 1 auto; /* Don't grow, allow shrink */
-        margin: 0 0.25rem;
+        margin: 0 0.2rem;
         min-width: 0; /* Allow flexbox shrinking */
+        max-width: 50%; /* Max 50% of navbar width */
     }
 
     .merged-search {
         display: flex !important;
         width: 100%;
-        max-width: 220px; /* Limit search bar width on mobile */
-        padding: 0 0.5rem;
+        max-width: 160px !important; /* Much narrower - CRITICAL FIX */
+        padding: 0 0.4rem;
     }
 
     .merged-search input {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.25rem;
+        font-size: 0.75rem !important;
+        padding: 0.35rem 0.2rem !important;
         display: block !important;
-        min-width: 0; /* Allow input to shrink */
+        min-width: 0 !important; /* Allow input to shrink */
+    }
+
+    /* Make favorites button smaller on mobile */
+    .favorite-btn {
+        display: none !important; /* Hide star button on mobile to save space */
+    }
+
+    .clear-search-btn {
+        min-width: 24px !important;
+        padding: 0.2rem !important;
     }
 
     .navbar-right {
-        gap: 0.25rem;
+        gap: 0.2rem;
         display: flex;
         flex-shrink: 0; /* Don't shrink navbar-right */
     }
 
     .navbar-icon,
-    .btn-icon {
-        min-width: 36px;
-        min-height: 36px;
+    #navSettingsBtn {
+        min-width: 40px !important;
+        min-height: 40px !important;
+        padding: 0.5rem !important;
     }
 
     .language-selector {
@@ -2332,16 +2343,20 @@ body {
         display: inline;
     }
 
-    /* MOBILE TIMELINE - ONE ITEM AT A TIME */
+    /* MOBILE TIMELINE - CRITICAL FIXES FOR HORIZONTAL SCROLLING */
     .unified-timeline-container {
-        padding: 0.5rem 0;
+        padding: 0.5rem;
         margin: 0 !important;
+        width: 100% !important;
+        overflow: visible !important;
     }
 
     .unified-scroll-wrapper {
         gap: 0;
-        flex-direction: column; /* Stack vertically on mobile */
+        /* REMOVED flex-direction: column - this was breaking horizontal scroll! */
+        flex-direction: row !important;
         align-items: stretch;
+        overflow: visible !important;
     }
 
     /* HIDE scroll buttons on mobile completely */
@@ -2354,69 +2369,91 @@ body {
 
     .unified-timeline-scroll {
         gap: 1.5rem;
-        padding: 0.5rem;
-        overflow-x: hidden !important; /* Disable horizontal scroll on container */
-        overflow-y: auto; /* Allow vertical scroll to see different years */
-        width: 100vw !important; /* Full viewport width */
-        max-width: 100vw !important;
+        padding: 0.5rem 0.25rem;
+        overflow-x: visible !important; /* CRITICAL: Enable horizontal overflow */
+        overflow-y: auto !important; /* Allow vertical scroll between years */
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 !important;
     }
 
-    /* Adjust row container for mobile */
+    /* Adjust row container for mobile - keep as block for vertical stacking of years */
     .timeline-row-container {
-        display: block !important; /* Change from grid to block */
+        display: block !important;
         width: 100% !important;
         margin-bottom: 1.5rem;
+        overflow: visible !important;
     }
 
-    /* Make header stack on top */
+    /* CRITICAL: Make timeline header VISIBLE and prominent */
     .timeline-row-header {
         position: relative !important;
         left: auto !important;
         width: 100% !important;
         max-width: 100% !important;
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.5rem;
-        background: var(--surface);
-        border-radius: 8px;
+        padding: 0.6rem 0.75rem !important;
+        margin-bottom: 0.6rem !important;
+        background: var(--primary-color) !important; /* Make it stand out */
+        color: white !important;
+        border-radius: 6px !important;
         display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        box-shadow: var(--shadow-sm) !important;
     }
 
     .timeline-row-header h2 {
-        font-size: 0.95rem;
-        gap: 0.2rem;
+        font-size: 0.9rem !important;
+        gap: 0.25rem !important;
+        color: white !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
     }
 
     .year-label-inline {
-        font-size: 0.8rem;
+        font-size: 0.75rem !important;
+        opacity: 0.95 !important;
+        font-weight: 600 !important;
     }
 
-    /* Make track scrollable with one item visible */
+    .remove-timeline-btn {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        padding: 0.3rem !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+    }
+
+    /* CRITICAL: Make track HORIZONTALLY SCROLLABLE with one item visible */
     .timeline-track {
         display: flex !important;
-        gap: 0.75rem; /* Increased gap between cards */
-        padding: 0 0.75rem !important;
-        overflow-x: auto !important;
+        flex-direction: row !important; /* CRITICAL: Horizontal layout */
+        gap: 1rem !important; /* Gap between cards for swipe separation */
+        padding: 0.5rem !important;
+        overflow-x: scroll !important; /* CRITICAL: Enable horizontal scrolling */
         overflow-y: visible !important;
         scroll-snap-type: x mandatory !important;
         -webkit-overflow-scrolling: touch !important;
         scrollbar-width: none !important; /* Hide scrollbar for Firefox */
         -ms-overflow-style: none !important; /* Hide scrollbar for IE/Edge */
         width: 100% !important;
+        scroll-behavior: smooth !important;
     }
 
     .timeline-track::-webkit-scrollbar {
         display: none !important; /* Hide scrollbar for Chrome/Safari */
     }
 
-    /* ONE ITEM AT A TIME - Full width cards - MORE AGGRESSIVE */
+    /* ONE ITEM AT A TIME - Full width cards */
     .timeline-item {
-        min-width: calc(100vw - 2.5rem) !important; /* Almost full viewport */
-        max-width: calc(100vw - 2.5rem) !important;
-        width: calc(100vw - 2.5rem) !important;
+        /* CRITICAL: Size to show EXACTLY ONE card */
+        min-width: calc(100vw - 3rem) !important;
+        max-width: calc(100vw - 3rem) !important;
+        width: calc(100vw - 3rem) !important;
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
-        padding: 1rem 0.75rem !important; /* More compact padding */
-        scroll-snap-align: center !important;
+        padding: 1rem 0.85rem !important;
+        scroll-snap-align: start !important; /* Snap to start for better mobile UX */
         scroll-snap-stop: always !important;
         margin: 0 !important;
         box-sizing: border-box !important;
@@ -2583,10 +2620,15 @@ body {
 
     /* Smaller, more compact timeline items for iPhone SE */
     .timeline-item {
-        min-width: calc(100vw - 2rem) !important;
-        max-width: calc(100vw - 2rem) !important;
-        width: calc(100vw - 2rem) !important;
+        min-width: calc(100vw - 2.5rem) !important;
+        max-width: calc(100vw - 2.5rem) !important;
+        width: calc(100vw - 2.5rem) !important;
         padding: 0.85rem 0.65rem !important;
+    }
+
+    .timeline-track {
+        padding: 0.5rem 0.25rem !important;
+        gap: 0.75rem !important;
     }
 
     .timeline-date {
@@ -2662,10 +2704,15 @@ body {
 /* Standard iPhones (376px to 430px) - iPhone 12/13/14, iPhone 14 Pro */
 @media (min-width: 376px) and (max-width: 430px) {
     .timeline-item {
-        min-width: calc(100vw - 2.5rem) !important;
-        max-width: calc(100vw - 2.5rem) !important;
-        width: calc(100vw - 2.5rem) !important;
+        min-width: calc(100vw - 3rem) !important;
+        max-width: calc(100vw - 3rem) !important;
+        width: calc(100vw - 3rem) !important;
         padding: 0.95rem 0.75rem !important;
+    }
+
+    .timeline-track {
+        padding: 0.5rem 0.35rem !important;
+        gap: 0.85rem !important;
     }
 
     .weather-icon {
@@ -2677,18 +2724,23 @@ body {
     }
 
     .merged-search {
-        max-width: 200px !important;
+        max-width: 150px !important;
     }
 }
 
 /* iPhone Pro Max and large phones (431px and above, but still mobile) */
 @media (min-width: 431px) and (max-width: 768px) {
-    /* CRITICAL: Make card width larger to show ONLY ONE card */
+    /* CRITICAL: Make card width large enough to show ONLY ONE card */
     .timeline-item {
-        min-width: calc(100vw - 2.5rem) !important;
-        max-width: calc(100vw - 2.5rem) !important;
-        width: calc(100vw - 2.5rem) !important;
+        min-width: calc(100vw - 3.5rem) !important;
+        max-width: calc(100vw - 3.5rem) !important;
+        width: calc(100vw - 3.5rem) !important;
         padding: 1rem 0.85rem !important;
+    }
+
+    .timeline-track {
+        padding: 0.5rem 0.5rem !important;
+        gap: 1rem !important;
     }
 
     .timeline-date {
@@ -2720,7 +2772,7 @@ body {
     }
 
     .merged-search {
-        max-width: 240px !important;
+        max-width: 160px !important;
     }
 }
 
