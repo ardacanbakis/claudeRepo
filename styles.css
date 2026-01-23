@@ -2314,35 +2314,51 @@ body {
 
     /* MOBILE TIMELINE - ONE ITEM AT A TIME */
     .unified-timeline-container {
-        padding: 0.5rem;
+        padding: 0.5rem 0;
+        margin: 0 !important;
     }
 
     .unified-scroll-wrapper {
-        gap: 0.25rem;
+        gap: 0;
+        flex-direction: column; /* Stack vertically on mobile */
+        align-items: stretch;
+    }
+
+    /* HIDE scroll buttons on mobile completely */
+    .scroll-btn,
+    .scroll-btn-large,
+    .scroll-left,
+    .scroll-right {
+        display: none !important;
     }
 
     .unified-timeline-scroll {
         gap: 1.5rem;
-        padding: 0.75rem 0;
-        overflow-x: hidden; /* Disable horizontal scroll on container */
+        padding: 0.5rem;
+        overflow-x: hidden !important; /* Disable horizontal scroll on container */
         overflow-y: auto; /* Allow vertical scroll to see different years */
+        width: 100vw !important; /* Full viewport width */
+        max-width: 100vw !important;
     }
 
     /* Adjust row container for mobile */
     .timeline-row-container {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-        margin-top: 0;
+        display: block !important; /* Change from grid to block */
+        width: 100% !important;
+        margin-bottom: 1.5rem;
     }
 
     /* Make header stack on top */
     .timeline-row-header {
-        position: relative;
-        left: auto;
-        min-width: 100%;
-        max-width: 100%;
-        padding: 0.6rem 0.75rem;
-        margin-bottom: 0;
+        position: relative !important;
+        left: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        background: var(--surface);
+        border-radius: 8px;
+        display: flex !important;
     }
 
     .timeline-row-header h2 {
@@ -2356,36 +2372,41 @@ body {
 
     /* Make track scrollable with one item visible */
     .timeline-track {
-        display: flex;
-        gap: 0.75rem;
-        padding: 0;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Hide scrollbar for Firefox */
-        -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+        display: flex !important;
+        gap: 0.5rem;
+        padding: 0 0.5rem !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important; /* Hide scrollbar for Firefox */
+        -ms-overflow-style: none !important; /* Hide scrollbar for IE/Edge */
+        width: 100% !important;
     }
 
     .timeline-track::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome/Safari */
+        display: none !important; /* Hide scrollbar for Chrome/Safari */
     }
 
     /* ONE ITEM AT A TIME - Full width cards */
     .timeline-item {
-        min-width: calc(100vw - 7.5rem); /* Full width minus container padding + buttons + gaps */
-        max-width: calc(100vw - 7.5rem);
-        flex-shrink: 0;
-        padding: 1.25rem;
-        scroll-snap-align: center;
-        scroll-snap-stop: always;
+        min-width: calc(100vw - 2rem) !important; /* Full viewport minus small padding */
+        max-width: calc(100vw - 2rem) !important;
+        width: calc(100vw - 2rem) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        padding: 1.5rem 1rem !important;
+        scroll-snap-align: center !important;
+        scroll-snap-stop: always !important;
+        margin: 0 !important;
     }
 
     .timeline-item:first-child {
-        margin-left: 0;
+        margin-left: 0 !important;
     }
 
     .timeline-item:last-child {
-        margin-right: 0;
+        margin-right: 0 !important;
     }
 
     /* Larger touch-friendly elements */
@@ -2427,16 +2448,9 @@ body {
         padding-top: 0.75rem;
     }
 
-    /* Scroll buttons for mobile - make them more visible and touch-friendly */
+    /* Scroll buttons for mobile - HIDDEN */
     .scroll-btn-large {
-        width: 48px;
-        height: 48px;
-        opacity: 0.95;
-    }
-
-    .scroll-btn-large svg {
-        width: 28px;
-        height: 28px;
+        display: none !important;
     }
 
     /* Footer */
@@ -2546,9 +2560,10 @@ body {
 
     /* Smaller timeline items for iPhone SE */
     .timeline-item {
-        min-width: calc(100vw - 7rem);
-        max-width: calc(100vw - 7rem);
-        padding: 1rem 0.75rem;
+        min-width: calc(100vw - 1.5rem) !important;
+        max-width: calc(100vw - 1.5rem) !important;
+        width: calc(100vw - 1.5rem) !important;
+        padding: 1rem 0.75rem !important;
     }
 
     .timeline-date {
@@ -2620,9 +2635,10 @@ body {
 /* Standard iPhones (376px to 430px) - iPhone 12/13/14, iPhone 14 Pro */
 @media (min-width: 376px) and (max-width: 430px) {
     .timeline-item {
-        min-width: calc(100vw - 7.5rem);
-        max-width: calc(100vw - 7.5rem);
-        padding: 1.15rem 0.85rem;
+        min-width: calc(100vw - 2rem) !important;
+        max-width: calc(100vw - 2rem) !important;
+        width: calc(100vw - 2rem) !important;
+        padding: 1.15rem 0.85rem !important;
     }
 
     .weather-icon {
@@ -2637,9 +2653,10 @@ body {
 /* iPhone Pro Max and large phones (431px and above, but still mobile) */
 @media (min-width: 431px) and (max-width: 768px) {
     .timeline-item {
-        min-width: calc(100vw - 8rem);
-        max-width: calc(100vw - 8rem);
-        padding: 1.35rem 1rem;
+        min-width: calc(100vw - 2rem) !important;
+        max-width: calc(100vw - 2rem) !important;
+        width: calc(100vw - 2rem) !important;
+        padding: 1.35rem 1rem !important;
     }
 
     .timeline-date {
@@ -2855,8 +2872,9 @@ body {
     }
 
     .timeline-item {
-        min-width: calc(50vw - 5rem);
-        max-width: calc(50vw - 5rem);
+        min-width: calc(50vw - 2rem) !important;
+        max-width: calc(50vw - 2rem) !important;
+        width: calc(50vw - 2rem) !important;
     }
 
     .weather-icon {
