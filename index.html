@@ -131,7 +131,7 @@
                 </div>
 
                 <div class="modal-body settings-body">
-                    <!-- First Row: Language, Theme, Temperature Unit -->
+                    <!-- First Row: Language, Temperature Unit -->
                     <div class="settings-row-top">
                         <div class="settings-section">
                             <label>Language, Dil, Idioma</label>
@@ -140,18 +140,14 @@
                                 <button class="btn btn-view" data-lang="tr">Türkçe</button>
                                 <button class="btn btn-view" data-lang="es">Español</button>
                             </div>
-                        </div>
 
-                        <div class="settings-section">
-                            <label>Theme, Tema, Tema</label>
-                            <div class="btn-group">
-                                <button class="btn btn-view active" data-theme="light">Light</button>
-                                <button class="btn btn-view" data-theme="dark">Dark</button>
-                                <button class="btn btn-view" data-theme="forest">Forest</button>
-                                <button class="btn btn-view" data-theme="ocean">Ocean</button>
-                                <button class="btn btn-view" data-theme="matrix">Matrix</button>
-                                <button class="btn btn-view" data-theme="sunset">Sunset</button>
-                                <button class="btn btn-view" data-theme="midnight">Midnight</button>
+                            <!-- Show Comparisons Toggle (in same column, new row) -->
+                            <div style="margin-top: 1.5rem;">
+                                <label>Show Temperature Comparisons</label>
+                                <div class="btn-group">
+                                    <button class="btn btn-view active" data-comparison="show">Show</button>
+                                    <button class="btn btn-view" data-comparison="hide">Hide</button>
+                                </div>
                             </div>
                         </div>
 
@@ -164,7 +160,23 @@
                         </div>
                     </div>
 
-                    <!-- Second Row: Favorites and Keyboard Shortcuts -->
+                    <!-- Second Row: Theme (Full Width) -->
+                    <div class="settings-row-middle">
+                        <div class="settings-section">
+                            <label>Theme, Tema, Tema</label>
+                            <div class="btn-group">
+                                <button class="btn btn-view active" data-theme="light">Light</button>
+                                <button class="btn btn-view" data-theme="dark">Dark</button>
+                                <button class="btn btn-view" data-theme="forest">Forest</button>
+                                <button class="btn btn-view" data-theme="ocean">Ocean</button>
+                                <button class="btn btn-view" data-theme="matrix">Matrix</button>
+                                <button class="btn btn-view" data-theme="sunset">Sunset</button>
+                                <button class="btn btn-view" data-theme="midnight">Midnight</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Third Row: Favorites and Keyboard Shortcuts -->
                     <div class="settings-row-bottom">
                         <div class="settings-section settings-section-half">
                             <div class="collapsable-header" id="favoritesHeader">

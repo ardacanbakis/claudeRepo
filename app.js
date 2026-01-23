@@ -249,7 +249,8 @@ class WeatherTimeline {
             tempUnit: 'celsius',
             view: 'daily',
             lang: 'en',
-            favorites: []
+            favorites: [],
+            showComparisons: true
         };
 
         try {
@@ -324,6 +325,13 @@ class WeatherTimeline {
         // Update temp unit buttons
         document.querySelectorAll('[data-unit]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.unit === this.preferences.tempUnit);
+        });
+
+        // Update comparison buttons
+        document.querySelectorAll('[data-comparison]').forEach(btn => {
+            const shouldBeActive = (btn.dataset.comparison === 'show' && this.preferences.showComparisons) ||
+                                   (btn.dataset.comparison === 'hide' && !this.preferences.showComparisons);
+            btn.classList.toggle('active', shouldBeActive);
         });
 
         // Update view buttons
@@ -596,6 +604,17 @@ class WeatherTimeline {
             });
         });
 
+        // Show/Hide Comparisons buttons
+        document.querySelectorAll('[data-comparison]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent settings panel from closing
+                const option = e.currentTarget.dataset.comparison;
+                if (option) {
+                    this.toggleComparisons(option === 'show');
+                }
+            });
+        });
+
         // Favorite button
         this.favoriteBtn.addEventListener('click', () => this.toggleFavorite());
 
@@ -791,6 +810,23 @@ class WeatherTimeline {
         });
 
         // Re-render timelines with new unit
+        if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
+            this.renderAllTimelines();
+        }
+    }
+
+    // Show/Hide Comparisons management
+    toggleComparisons(show) {
+        this.preferences.showComparisons = show;
+        this.savePreferences();
+
+        document.querySelectorAll('[data-comparison]').forEach(btn => {
+            const shouldBeActive = (btn.dataset.comparison === 'show' && show) ||
+                                   (btn.dataset.comparison === 'hide' && !show);
+            btn.classList.toggle('active', shouldBeActive);
+        });
+
+        // Re-render timelines with new setting
         if (this.currentLocation && Object.keys(this.weatherDataCache).length > 0) {
             this.renderAllTimelines();
         }
@@ -2066,7 +2102,7 @@ class WeatherTimeline {
         }
 
         let comparisonHTML = '';
-        if (comparisonTemp !== null) {
+        if (comparisonTemp !== null && this.preferences.showComparisons) {
             const currentTemp = this.convertTemp(comparisonTemp);
             const diff = temp - currentTemp;
             const diffClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
