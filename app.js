@@ -4,6 +4,8 @@ class WeatherTimeline {
         this.apiKey = localStorage.getItem('openweather_api_key') || '';
         this.currentLocation = null;
         this.currentView = 'daily'; // daily, weekly, monthly
+        this.tempUnit = 'C'; // C or F
+        this.toastTimeout = null;
         this.weatherData = {
             current: [],
             previous: []
@@ -28,12 +30,16 @@ class WeatherTimeline {
         this.apiKeySection = document.getElementById('apiKeySection');
         this.apiKeyInput = document.getElementById('apiKeyInput');
         this.saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+        this.apiKeyInfo = document.getElementById('apiKeyInfo');
+        this.changeApiKeyBtn = document.getElementById('changeApiKeyBtn');
 
         // Control elements
         this.geolocationBtn = document.getElementById('geolocationBtn');
         this.citySearch = document.getElementById('citySearch');
         this.searchBtn = document.getElementById('searchBtn');
         this.viewBtns = document.querySelectorAll('.btn-view');
+        this.unitCBtn = document.getElementById('unitC');
+        this.unitFBtn = document.getElementById('unitF');
 
         // Display elements
         this.locationDisplay = document.getElementById('currentLocation');
@@ -45,7 +51,7 @@ class WeatherTimeline {
 
         // Utility elements
         this.loadingIndicator = document.getElementById('loadingIndicator');
-        this.errorMessage = document.getElementById('errorMessage');
+        this.toast = document.getElementById('toast');
 
         // Scroll buttons
         this.scrollBtns = document.querySelectorAll('.scroll-btn');
@@ -57,6 +63,7 @@ class WeatherTimeline {
         this.apiKeyInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.saveApiKey();
         });
+        this.changeApiKeyBtn.addEventListener('click', () => this.showApiKeySection());
 
         // Location
         this.geolocationBtn.addEventListener('click', () => this.useGeolocation());
@@ -77,6 +84,10 @@ class WeatherTimeline {
             });
         });
 
+        // Unit toggle
+        this.unitCBtn.addEventListener('click', () => this.setTempUnit('C'));
+        this.unitFBtn.addEventListener('click', () => this.setTempUnit('F'));
+
         // Scroll buttons
         this.scrollBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -95,33 +106,65 @@ class WeatherTimeline {
         });
     }
 
+    // Temperature unit management
+    setTempUnit(unit) {
+        this.tempUnit = unit;
+        this.unitCBtn.classList.toggle('active', unit === 'C');
+        this.unitFBtn.classList.toggle('active', unit === 'F');
+        this.unitCBtn.setAttribute('aria-pressed', unit === 'C');
+        this.unitFBtn.setAttribute('aria-pressed', unit === 'F');
+
+        // Re-render if data is loaded
+        if (this.weatherData.current.length > 0) {
+            this.renderTimelines();
+        }
+    }
+
+    displayTemp(celsius) {
+        if (this.tempUnit === 'F') {
+            return `${Math.round(celsius * 9 / 5 + 32)}°F`;
+        }
+        return `${celsius}°C`;
+    }
+
+    getTemperatureClass(celsius) {
+        if (celsius >= 30) return 'temp-hot';
+        if (celsius >= 20) return 'temp-warm';
+        if (celsius >= 10) return 'temp-mild';
+        if (celsius >= 0) return 'temp-cool';
+        return 'temp-cold';
+    }
+
     // API Key Management
     saveApiKey() {
         const apiKey = this.apiKeyInput.value.trim();
         if (!apiKey) {
-            this.showError('Please enter a valid API key');
+            this.showToast('Please enter a valid API key', 'error');
             return;
         }
 
         this.apiKey = apiKey;
         localStorage.setItem('openweather_api_key', apiKey);
         this.hideApiKeySection();
-        this.showSuccess('API key saved successfully!');
+        this.showToast('API key saved successfully!', 'success');
     }
 
     showApiKeySection() {
         this.apiKeySection.style.display = 'block';
+        this.apiKeyInfo.style.display = 'none';
         this.timelineContainer.style.display = 'none';
+        this.apiKeyInput.focus();
     }
 
     hideApiKeySection() {
         this.apiKeySection.style.display = 'none';
+        this.apiKeyInfo.style.display = 'flex';
     }
 
     // Geolocation
     useGeolocation() {
         if (!navigator.geolocation) {
-            this.showError('Geolocation is not supported by your browser');
+            this.showToast('Geolocation is not supported by your browser', 'error');
             return;
         }
 
@@ -134,7 +177,7 @@ class WeatherTimeline {
             },
             (error) => {
                 this.hideLoading();
-                this.showError('Unable to retrieve your location: ' + error.message);
+                this.showToast('Unable to retrieve your location: ' + error.message, 'error');
             }
         );
     }
@@ -143,7 +186,7 @@ class WeatherTimeline {
     async searchCity() {
         const cityName = this.citySearch.value.trim();
         if (!cityName) {
-            this.showError('Please enter a city name');
+            this.showToast('Please enter a city name', 'error');
             return;
         }
 
@@ -168,7 +211,7 @@ class WeatherTimeline {
 
         } catch (error) {
             this.hideLoading();
-            this.showError(error.message);
+            this.showToast(error.message, 'error');
         }
     }
 
@@ -204,7 +247,7 @@ class WeatherTimeline {
 
         } catch (error) {
             this.hideLoading();
-            this.showError('Failed to load weather data: ' + error.message);
+            this.showToast('Failed to load weather data: ' + error.message, 'error');
         }
     }
 
@@ -274,14 +317,10 @@ class WeatherTimeline {
 
     // Fetch Weather for Specific Date
     async fetchWeatherForDate(lat, lon, date) {
-        const timestamp = Math.floor(date.getTime() / 1000);
-
-        // For recent dates (within 5 days), use current weather or forecast
         const now = new Date();
         const daysDiff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
         if (daysDiff < 0) {
-            // Future date - shouldn't happen, but handle it
             throw new Error('Cannot fetch future weather');
         } else if (daysDiff === 0) {
             // Today - use current weather
@@ -296,7 +335,7 @@ class WeatherTimeline {
             return this.formatWeatherData(data, date);
         } else {
             // Historical data - OpenWeatherMap historical API requires subscription
-            // For demo purposes, we'll simulate historical data based on current weather with some variation
+            // For demo purposes, simulate historical data based on current weather with variation
             const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${this.apiKey}`;
             const response = await fetch(url);
 
@@ -324,11 +363,9 @@ class WeatherTimeline {
 
     // Simulate Historical Data (for demo purposes)
     simulateHistoricalData(currentData, date, daysDiff) {
-        // Add some random variation to simulate historical data
         const tempVariation = (Math.random() - 0.5) * 10;
         const temp = Math.round(currentData.main.temp + tempVariation);
 
-        // Randomly vary weather conditions
         const conditions = ['Clear', 'Clouds', 'Rain', 'Snow', 'Drizzle'];
         const randomCondition = Math.random() < 0.7 ? currentData.weather[0].main : conditions[Math.floor(Math.random() * conditions.length)];
 
@@ -385,11 +422,11 @@ class WeatherTimeline {
         this.previousYearLabel.textContent = previousYear;
 
         // Aggregate data based on view
-        let currentData = this.aggregateData(this.weatherData.current);
-        let previousData = this.aggregateData(this.weatherData.previous);
+        const currentData = this.aggregateData(this.weatherData.current);
+        const previousData = this.aggregateData(this.weatherData.previous);
 
         // Render current year timeline
-        currentData.forEach((item, index) => {
+        currentData.forEach((item) => {
             const isToday = this.isToday(item.date);
             const element = this.createTimelineItem(item, isToday);
             this.currentTrack.appendChild(element);
@@ -487,10 +524,13 @@ class WeatherTimeline {
     // Create Timeline Item
     createTimelineItem(data, isToday = false) {
         const item = document.createElement('div');
-        item.className = 'timeline-item';
+        item.className = `timeline-item ${this.getTemperatureClass(data.temp)}`;
         if (isToday) {
             item.classList.add('current-day');
         }
+
+        item.tabIndex = 0;
+        item.setAttribute('role', 'article');
 
         const dateStr = this.formatDate(data.date, data.endDate, data.isWeek, data.isMonth);
         const dayStr = this.formatDay(data.date, data.isWeek, data.isMonth);
@@ -498,8 +538,8 @@ class WeatherTimeline {
         item.innerHTML = `
             <div class="timeline-date">${dateStr}</div>
             <div class="timeline-day">${dayStr}</div>
-            <div class="weather-icon">${data.icon}</div>
-            <div class="weather-temp">${data.temp}°C</div>
+            <div class="weather-icon" aria-hidden="true">${data.icon}</div>
+            <div class="weather-temp">${this.displayTemp(data.temp)}</div>
             <div class="weather-condition">${data.description}</div>
         `;
 
@@ -512,7 +552,7 @@ class WeatherTimeline {
         } else if (isWeek && endDate) {
             const start = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             const end = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            return `${start} - ${end}`;
+            return `${start} – ${end}`;
         } else {
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
@@ -544,35 +584,24 @@ class WeatherTimeline {
 
     showLoading() {
         this.loadingIndicator.style.display = 'flex';
-        this.errorMessage.style.display = 'none';
     }
 
     hideLoading() {
         this.loadingIndicator.style.display = 'none';
     }
 
-    showError(message) {
-        this.errorMessage.textContent = message;
-        this.errorMessage.style.display = 'block';
-        setTimeout(() => {
-            this.errorMessage.style.display = 'none';
-        }, 5000);
-    }
+    showToast(message, type = 'error') {
+        this.toast.textContent = message;
+        this.toast.className = `toast ${type}`;
 
-    showSuccess(message) {
-        // Reuse error message styling for success
-        this.errorMessage.style.background = '#d1fae5';
-        this.errorMessage.style.color = '#065f46';
-        this.errorMessage.style.borderLeftColor = '#10b981';
-        this.errorMessage.textContent = message;
-        this.errorMessage.style.display = 'block';
-        setTimeout(() => {
-            this.errorMessage.style.display = 'none';
-            // Reset to error styling
-            this.errorMessage.style.background = '#fee2e2';
-            this.errorMessage.style.color = '#991b1b';
-            this.errorMessage.style.borderLeftColor = '#ef4444';
-        }, 3000);
+        // Force reflow to restart transition
+        void this.toast.offsetWidth;
+        this.toast.classList.add('show');
+
+        clearTimeout(this.toastTimeout);
+        this.toastTimeout = setTimeout(() => {
+            this.toast.classList.remove('show');
+        }, type === 'error' ? 5000 : 3000);
     }
 
     delay(ms) {

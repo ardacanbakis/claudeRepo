@@ -16,32 +16,53 @@
 
         <!-- Controls -->
         <div class="controls">
-            <div class="location-controls">
-                <button id="geolocationBtn" class="btn btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20M2 12h20"></path>
-                        <circle cx="12" cy="12" r="7"></circle>
-                    </svg>
-                    Use My Location
-                </button>
-                <div class="search-box">
-                    <input type="text" id="citySearch" placeholder="Search for a city..." />
-                    <button id="searchBtn" class="btn btn-secondary">Search</button>
+            <div class="controls-row">
+                <div class="location-controls">
+                    <button id="geolocationBtn" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Use My Location
+                    </button>
+                    <div class="search-box">
+                        <input type="text" id="citySearch" placeholder="Search for a city..." autocomplete="off" />
+                        <button id="searchBtn" class="btn btn-secondary">Search</button>
+                    </div>
+                </div>
+
+                <div class="right-controls">
+                    <div class="view-controls">
+                        <label>View:</label>
+                        <div class="btn-group" role="group" aria-label="Timeline view">
+                            <button class="btn btn-view active" data-view="daily">Daily</button>
+                            <button class="btn btn-view" data-view="weekly">Weekly</button>
+                            <button class="btn btn-view" data-view="monthly">Monthly</button>
+                        </div>
+                    </div>
+
+                    <div class="unit-toggle" role="group" aria-label="Temperature unit">
+                        <button id="unitC" class="active" aria-pressed="true">°C</button>
+                        <button id="unitF" aria-pressed="false">°F</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="view-controls">
-                <label>View:</label>
-                <div class="btn-group">
-                    <button class="btn btn-view active" data-view="daily">Daily</button>
-                    <button class="btn btn-view" data-view="weekly">Weekly</button>
-                    <button class="btn btn-view" data-view="monthly">Monthly</button>
-                </div>
+            <div id="apiKeyInfo" class="api-key-info" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                API key configured.
+                <button id="changeApiKeyBtn" class="link-btn">Change API Key</button>
             </div>
         </div>
 
         <!-- Location Display -->
         <div id="locationDisplay" class="location-display">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>
             <span id="currentLocation">Select a location to view weather data</span>
         </div>
 
@@ -51,14 +72,14 @@
                 <h3>OpenWeatherMap API Key Required</h3>
                 <p>To use this app, you need a free API key from OpenWeatherMap.</p>
                 <ol>
-                    <li>Visit <a href="https://openweathermap.org/api" target="_blank">OpenWeatherMap API</a></li>
+                    <li>Visit <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer">OpenWeatherMap API</a></li>
                     <li>Sign up for a free account</li>
                     <li>Get your API key</li>
                     <li>Enter it below:</li>
                 </ol>
                 <div class="api-key-input-group">
-                    <input type="text" id="apiKeyInput" placeholder="Enter your API key..." />
-                    <button id="saveApiKeyBtn" class="btn btn-primary">Save</button>
+                    <input type="text" id="apiKeyInput" placeholder="Enter your API key..." autocomplete="off" spellcheck="false" />
+                    <button id="saveApiKeyBtn" class="btn btn-primary">Save Key</button>
                 </div>
             </div>
         </div>
@@ -66,24 +87,24 @@
         <!-- Timeline Container -->
         <div id="timelineContainer" class="timeline-container" style="display: none;">
             <!-- Current Year Timeline -->
-            <div class="timeline-section">
+            <div class="timeline-section current-year">
                 <div class="timeline-header">
                     <h2>Current Weather</h2>
                     <span id="currentYearLabel" class="year-label">2026</span>
                 </div>
                 <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left" data-timeline="current">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="scroll-btn scroll-left" data-timeline="current" aria-label="Scroll left">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M15 18l-6-6 6-6"></path>
                         </svg>
                     </button>
-                    <div class="timeline-scroll" id="currentTimeline">
+                    <div class="timeline-scroll" id="currentTimeline" role="region" aria-label="Current year weather timeline">
                         <div class="timeline-track" id="currentTrack">
                             <!-- Timeline items will be inserted here -->
                         </div>
                     </div>
-                    <button class="scroll-btn scroll-right" data-timeline="current">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="scroll-btn scroll-right" data-timeline="current" aria-label="Scroll right">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M9 18l6-6-6-6"></path>
                         </svg>
                     </button>
@@ -91,24 +112,24 @@
             </div>
 
             <!-- Previous Year Timeline -->
-            <div class="timeline-section">
+            <div class="timeline-section previous-year">
                 <div class="timeline-header">
                     <h2>One Year Ago</h2>
                     <span id="previousYearLabel" class="year-label">2025</span>
                 </div>
                 <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left" data-timeline="previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="scroll-btn scroll-left" data-timeline="previous" aria-label="Scroll left">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M15 18l-6-6 6-6"></path>
                         </svg>
                     </button>
-                    <div class="timeline-scroll" id="previousTimeline">
+                    <div class="timeline-scroll" id="previousTimeline" role="region" aria-label="Previous year weather timeline">
                         <div class="timeline-track" id="previousTrack">
                             <!-- Timeline items will be inserted here -->
                         </div>
                     </div>
-                    <button class="scroll-btn scroll-right" data-timeline="previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="scroll-btn scroll-right" data-timeline="previous" aria-label="Scroll right">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M9 18l6-6-6-6"></path>
                         </svg>
                     </button>
@@ -117,14 +138,14 @@
         </div>
 
         <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="loading" style="display: none;">
+        <div id="loadingIndicator" class="loading" style="display: none;" role="status" aria-live="polite">
             <div class="spinner"></div>
             <p>Loading weather data...</p>
         </div>
-
-        <!-- Error Message -->
-        <div id="errorMessage" class="error-message" style="display: none;"></div>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
     <script src="app.js"></script>
 </body>
