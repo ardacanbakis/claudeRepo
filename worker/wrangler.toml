@@ -1,0 +1,14 @@
+name = "weather-timeline-api"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+# Lock the proxy to the origins that are allowed to call it. Comma-separated,
+# no trailing slash. Leave this out entirely to allow any origin (useful while
+# developing locally, but do not ship that to production).
+[vars]
+ALLOWED_ORIGINS = "https://ardacanbakis.github.io"
+
+# OWM_API_KEY is NOT set here — it is a secret, and this file is committed.
+# Set it once after deploying:
+#
+#   npx wrangler secret put OWM_API_KEY
