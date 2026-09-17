@@ -115,6 +115,9 @@ body {
     flex-wrap: wrap;
     align-items: center;
     flex: 1;
+    /* Flex items default to min-width:auto, which refuses to shrink below the
+       content's intrinsic width and overflows the page on narrow screens. */
+    min-width: 0;
 }
 
 .right-controls {
@@ -122,6 +125,7 @@ body {
     gap: 1rem;
     align-items: center;
     flex-wrap: wrap;
+    min-width: 0;
 }
 
 .search-box {
@@ -133,6 +137,9 @@ body {
 
 .search-box input {
     flex: 1;
+    /* An input carries ~240px of intrinsic width from its default size
+       attribute; without this it never shrinks, however narrow the viewport. */
+    min-width: 0;
     padding: 0.75rem 1rem;
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -152,6 +159,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-width: 0;
 }
 
 .view-controls label {
@@ -351,10 +359,12 @@ body {
 .api-key-input-group {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .api-key-input-group input {
     flex: 1;
+    min-width: 0;
     padding: 0.75rem 1rem;
     border: 2px solid var(--border-color);
     border-radius: 8px;
@@ -711,18 +721,24 @@ body {
         padding: 1rem;
     }
 
+    /* These rows wrap on desktop. Going column without also clearing
+       flex-wrap would wrap items into extra *columns*, each sized to its own
+       content rather than stretched to the container, overflowing the page. */
     .controls-row {
         flex-direction: column;
+        flex-wrap: nowrap;
         align-items: stretch;
     }
 
     .location-controls {
         flex-direction: column;
+        flex-wrap: nowrap;
         align-items: stretch;
     }
 
     .search-box {
-        min-width: 100%;
+        min-width: 0;
+        width: 100%;
     }
 
     .right-controls {
@@ -731,10 +747,19 @@ body {
 
     .view-controls {
         flex: 1;
+        /* Stack the "View:" label above the buttons rather than letting the
+           row push past the viewport. */
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 
     .btn-group {
         flex-wrap: wrap;
+    }
+
+    .btn-view {
+        flex: 1;
     }
 
     .timeline-item {
