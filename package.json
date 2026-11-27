@@ -1,0 +1,27 @@
+{
+  "name": "weather-timeline",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Compare this year's weather with any past year, day by day, week by week or month by month.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "npm run build && node --test \"dist/test/**/*.test.js\"",
+    "serve": "node scripts/serve.mjs",
+    "dev": "npm run build && npm run serve",
+    "site": "npm run build && node scripts/build-site.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.7",
+    "eslint": "^10.15.0",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.74.0"
+  }
+}

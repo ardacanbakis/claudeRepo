@@ -3,129 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Timeline - Year Over Year Comparison</title>
+    <title>Weather Timeline</title>
+    <meta name="description" content="Compare a place's weather with the same days last year, in any past year, or against a 10-year average.">
+    <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Apply a saved theme before first paint to avoid a flash.
+        try {
+            var prefs = JSON.parse(localStorage.getItem('weather-timeline:prefs:v1') || '{}');
+            if (prefs.theme === 'light' || prefs.theme === 'dark') document.documentElement.dataset.theme = prefs.theme;
+        } catch (e) { /* storage unavailable */ }
+    </script>
+    <script type="module" src="dist/src/main.js"></script>
 </head>
 <body>
+    <a class="skip-link" href="#results">Skip to results</a>
     <div class="container">
-        <!-- Header -->
         <header class="header">
-            <h1>Weather Timeline</h1>
-            <p class="subtitle">Compare weather patterns year over year</p>
+            <div>
+                <h1>Weather Timeline</h1>
+                <p class="subtitle">Compare a place's weather with the same days in another year.</p>
+            </div>
+            <div class="settings">
+                <div class="segmented" role="group" aria-label="Units">
+                    <button type="button" class="seg-btn" data-unit="metric" aria-pressed="true">°C</button>
+                    <button type="button" class="seg-btn" data-unit="imperial" aria-pressed="false">°F</button>
+                </div>
+                <label class="inline-field">
+                    <span>Theme</span>
+                    <select id="themeSelect">
+                        <option value="system">System</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </label>
+            </div>
         </header>
 
-        <!-- Controls -->
-        <div class="controls">
+        <p id="fileNotice" class="notice notice-error" hidden>
+            This page can't run from a file. In the project folder, run <code>npm install</code> and then <code>npm run dev</code>, and open the address it prints.
+        </p>
+        <noscript><p class="notice notice-error">Weather Timeline needs JavaScript to load weather data.</p></noscript>
+
+        <section class="controls" aria-label="Place and period">
             <div class="location-controls">
-                <button id="geolocationBtn" class="btn btn-primary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20M2 12h20"></path>
-                        <circle cx="12" cy="12" r="7"></circle>
+                <form id="searchForm" class="search-box" role="search">
+                    <label for="citySearch" class="visually-hidden">Place name</label>
+                    <input type="search" id="citySearch" name="q" placeholder="Search a place, e.g. Paris, Texas" autocomplete="off" minlength="2" required>
+                    <button type="submit" id="searchBtn" class="btn btn-secondary">Search</button>
+                </form>
+                <button type="button" id="geolocationBtn" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+                        <circle cx="12" cy="12" r="6"></circle>
                     </svg>
-                    Use My Location
+                    Use my location
                 </button>
-                <div class="search-box">
-                    <input type="text" id="citySearch" placeholder="Search for a city..." />
-                    <button id="searchBtn" class="btn btn-secondary">Search</button>
-                </div>
             </div>
+            <div id="otherMatches" class="other-matches" hidden></div>
 
-            <div class="view-controls">
-                <label>View:</label>
-                <div class="btn-group">
-                    <button class="btn btn-view active" data-view="daily">Daily</button>
-                    <button class="btn btn-view" data-view="weekly">Weekly</button>
-                    <button class="btn btn-view" data-view="monthly">Monthly</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Location Display -->
-        <div id="locationDisplay" class="location-display">
-            <span id="currentLocation">Select a location to view weather data</span>
-        </div>
-
-        <!-- API Key Input (for first-time setup) -->
-        <div id="apiKeySection" class="api-key-section">
-            <div class="api-key-notice">
-                <h3>OpenWeatherMap API Key Required</h3>
-                <p>To use this app, you need a free API key from OpenWeatherMap.</p>
-                <ol>
-                    <li>Visit <a href="https://openweathermap.org/api" target="_blank">OpenWeatherMap API</a></li>
-                    <li>Sign up for a free account</li>
-                    <li>Get your API key</li>
-                    <li>Enter it below:</li>
-                </ol>
-                <div class="api-key-input-group">
-                    <input type="text" id="apiKeyInput" placeholder="Enter your API key..." />
-                    <button id="saveApiKeyBtn" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Timeline Container -->
-        <div id="timelineContainer" class="timeline-container" style="display: none;">
-            <!-- Current Year Timeline -->
-            <div class="timeline-section">
-                <div class="timeline-header">
-                    <h2>Current Weather</h2>
-                    <span id="currentYearLabel" class="year-label">2026</span>
-                </div>
-                <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left" data-timeline="current">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"></path>
-                        </svg>
-                    </button>
-                    <div class="timeline-scroll" id="currentTimeline">
-                        <div class="timeline-track" id="currentTrack">
-                            <!-- Timeline items will be inserted here -->
-                        </div>
+            <div class="view-row">
+                <div class="field">
+                    <span class="field-label" id="viewLabel">View</span>
+                    <div class="segmented" role="group" aria-labelledby="viewLabel">
+                        <button type="button" class="seg-btn" data-view="daily" aria-pressed="true">Daily</button>
+                        <button type="button" class="seg-btn" data-view="weekly" aria-pressed="false">Weekly</button>
+                        <button type="button" class="seg-btn" data-view="monthly" aria-pressed="false">Monthly</button>
                     </div>
-                    <button class="scroll-btn scroll-right" data-timeline="current">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"></path>
-                        </svg>
-                    </button>
+                </div>
+                <div class="field">
+                    <label class="field-label" for="compareSelect">Compare with</label>
+                    <select id="compareSelect"></select>
                 </div>
             </div>
 
-            <!-- Previous Year Timeline -->
-            <div class="timeline-section">
-                <div class="timeline-header">
-                    <h2>One Year Ago</h2>
-                    <span id="previousYearLabel" class="year-label">2025</span>
-                </div>
-                <div class="timeline-wrapper">
-                    <button class="scroll-btn scroll-left" data-timeline="previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"></path>
-                        </svg>
-                    </button>
-                    <div class="timeline-scroll" id="previousTimeline">
-                        <div class="timeline-track" id="previousTrack">
-                            <!-- Timeline items will be inserted here -->
-                        </div>
+            <details id="rangeDetails" class="range">
+                <summary>Custom dates</summary>
+                <form id="rangeForm" class="range-form">
+                    <label class="inline-field"><span>From</span> <input type="date" id="rangeStart" required></label>
+                    <label class="inline-field"><span>To</span> <input type="date" id="rangeEnd" required></label>
+                    <button type="submit" class="btn btn-secondary">Apply</button>
+                    <button type="button" id="rangeReset" class="btn btn-ghost">Use default</button>
+                </form>
+                <p class="hint">Up to two years. Without custom dates you see the last 30 days, 12 weeks or 12 months.</p>
+            </details>
+        </section>
+
+        <nav id="savedPlaces" class="saved-places" aria-label="Saved places" hidden>
+            <ul id="savedList" class="chips"></ul>
+        </nav>
+
+        <div id="notice" class="notice" role="alert"></div>
+
+        <main id="results" tabindex="-1">
+            <div id="emptyState" class="empty-state">
+                <h2>Pick a place to start</h2>
+                <p>Search for a city or use your location. You'll see its recent weather next to the same days last year.</p>
+            </div>
+
+            <div id="loadingIndicator" class="loading" role="status" hidden>
+                <div class="spinner" aria-hidden="true"></div>
+                <p>Loading weather data…</p>
+            </div>
+
+            <div id="resultsContent" hidden>
+                <div class="location-bar">
+                    <div>
+                        <h2 id="placeName"></h2>
+                        <p id="placeDetail" class="place-detail"></p>
                     </div>
-                    <button class="scroll-btn scroll-right" data-timeline="previous">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"></path>
-                        </svg>
-                    </button>
+                    <div class="location-actions">
+                        <button type="button" id="saveBtn" class="btn btn-ghost" aria-pressed="false">☆ Save place</button>
+                        <button type="button" id="shareBtn" class="btn btn-ghost">Copy link</button>
+                    </div>
                 </div>
+
+                <p id="periodSummary" class="period-summary"></p>
+
+                <section class="panel" aria-labelledby="chartTitle">
+                    <h2 id="chartTitle" class="panel-title">Average temperature</h2>
+                    <div id="chart" class="chart"></div>
+                    <details class="data-table">
+                        <summary>Show as table</summary>
+                        <div class="table-scroll"><table id="dataTable"></table></div>
+                    </details>
+                </section>
+
+                <section class="panel" aria-labelledby="primaryTitle">
+                    <div class="timeline-header">
+                        <h2 id="primaryTitle" class="panel-title">Recent weather</h2>
+                        <span id="primaryRangeLabel" class="year-label"></span>
+                    </div>
+                    <div class="timeline-wrapper">
+                        <button type="button" class="scroll-btn" data-timeline="primary" data-dir="-1" aria-label="Scroll timelines back in time">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+                        </button>
+                        <div class="timeline-scroll" id="primaryTimeline" tabindex="0">
+                            <ol class="timeline-track" id="primaryTrack"></ol>
+                        </div>
+                        <button type="button" class="scroll-btn" data-timeline="primary" data-dir="1" aria-label="Scroll timelines forward in time">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="panel" aria-labelledby="comparisonTitle">
+                    <div class="timeline-header">
+                        <h2 id="comparisonTitle" class="panel-title">Compared with</h2>
+                        <span id="comparisonRangeLabel" class="year-label"></span>
+                    </div>
+                    <div class="timeline-wrapper">
+                        <button type="button" class="scroll-btn" data-timeline="comparison" data-dir="-1" aria-label="Scroll timelines back in time">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+                        </button>
+                        <div class="timeline-scroll" id="comparisonTimeline" tabindex="0">
+                            <ol class="timeline-track" id="comparisonTrack"></ol>
+                        </div>
+                        <button type="button" class="scroll-btn" data-timeline="comparison" data-dir="1" aria-label="Scroll timelines forward in time">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+                        </button>
+                    </div>
+                </section>
             </div>
-        </div>
+        </main>
 
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="loading" style="display: none;">
-            <div class="spinner"></div>
-            <p>Loading weather data...</p>
-        </div>
-
-        <!-- Error Message -->
-        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <footer class="footer">
+            <p>
+                Weather data by <a href="https://open-meteo.com/" rel="noopener noreferrer" target="_blank">Open-Meteo.com</a>
+                (<a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer" target="_blank">CC BY 4.0</a>).
+                Older days come from ERA5 reanalysis; the last ten days come from weather models and may be revised.
+                Daily average = midpoint of the day's high and low.
+            </p>
+        </footer>
     </div>
-
-    <script src="app.js"></script>
+    <script>
+        if (location.protocol === 'file:') document.getElementById('fileNotice').hidden = false;
+    </script>
 </body>
 </html>
