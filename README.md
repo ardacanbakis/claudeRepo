@@ -8,7 +8,7 @@ Compare a place's weather with the same days in another year: day by day, week b
 
 ![Weather Timeline showing weekly average temperatures for London in 2026 against 2025](docs/screenshot.png)
 
-<sub>Screenshot rendered with sample data. A dark theme is included ([screenshot](docs/screenshot-dark.png)).</sub>
+<sub>Real Open-Meteo data for London, captured 27 November 2026. A dark theme is included ([screenshot](docs/screenshot-dark.png)).</sub>
 
 ## Features
 
@@ -97,7 +97,7 @@ One-time setup: in the repository on GitHub, open **Settings → Pages** and set
 
 - **"No place called … was found"**: check the spelling, or add a country: "Springfield, Illinois".
 - **"Location access was denied"**: allow location for the site in your browser settings. Geolocation also needs HTTPS or `localhost`.
-- **"The weather service is limiting requests"**: Open-Meteo's free tier has fair-use limits. Wait a minute and try again.
+- **"The weather service is limiting requests"**: Open-Meteo's free tier limits requests per IP address (per minute, hour and day), and the message says which limit was hit. Shared networks such as offices, VPNs and cloud machines can exhaust the limit for everyone behind them. Long ranges and the 10-year average count as several requests.
 - **Blank page when opening `index.html`**: run `npm run dev` instead, as described above.
 
 ## License

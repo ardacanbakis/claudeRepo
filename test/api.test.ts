@@ -106,6 +106,15 @@ describe('fetchDaily', () => {
         await assert.rejects(fetchDaily(1, 2, [{ start: '2020-01-01', end: '2020-01-02' }], TODAY, { fetchFn }), /Wait a minute/);
     });
 
+    it('passes on which rate limit was hit', async () => {
+        const body = { error: true, reason: 'Daily API request limit exceeded. Please try again tomorrow.' };
+        const { fetchFn } = fakeFetch(() => Response.json(body, { status: 429 }));
+        await assert.rejects(
+            fetchDaily(1, 2, [{ start: '2020-01-01', end: '2020-01-02' }], TODAY, { fetchFn }),
+            /limiting requests: Daily API request limit exceeded/,
+        );
+    });
+
     it('reports network failures', async () => {
         const fetchFn: FetchFn = () => Promise.reject(new TypeError('Failed to fetch'));
         await assert.rejects(fetchDaily(1, 2, [{ start: '2020-01-01', end: '2020-01-02' }], TODAY, { fetchFn }), /Could not reach/);

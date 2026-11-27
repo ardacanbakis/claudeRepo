@@ -171,15 +171,20 @@ export function clearCache(): void {
 }
 
 async function errorFor(response: Response): Promise<ApiError> {
-    if (response.status === 429) {
-        return new ApiError('The weather service is limiting requests right now. Wait a minute and try again.');
-    }
     let reason = '';
     try {
         const body: unknown = await response.json();
-        if (isRecord(body) && typeof body.reason === 'string') reason = body.reason;
+        if (isRecord(body) && typeof body.reason === 'string') reason = body.reason.trim();
     } catch {
         // Body was not JSON; the status code is all we have.
+    }
+    if (response.status === 429) {
+        // Open-Meteo has minutely, hourly and daily limits; its reason says which one was hit.
+        return new ApiError(
+            reason
+                ? `The weather service is limiting requests: ${reason}`
+                : 'The weather service is limiting requests right now. Wait a minute and try again.',
+        );
     }
     return new ApiError(`The weather service returned an error (${response.status})${reason ? `: ${reason}` : ''}.`);
 }
